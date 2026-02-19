@@ -1,0 +1,598 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./sugularity.db"
+}
+
+// ============================================
+// SUGULARITY SPRINT 4 - CALENDAR + AUTOMATIONS + BRIEFINGS
+// ============================================
+
+// User Settings - Local preferences
+model UserSettings {
+  id                    String   @id @default(uuid())
+  dailyCapacityHours    Float    @default(6)
+  defaultEstimateMin    Int      @default(30)
+  requireEstimate       Boolean  @default(false)
+  workDayStart          String   @default("09:00")
+  workDayEnd            String   @default("17:00")
+  dashboardCoverImage   String?
+  // Sprint 2: Cold/Stale thresholds
+  coldTaskDays          Int      @default(14)
+  staleProjectDays      Int      @default(21)
+  backlogActiveLimit    Int      @default(40)
+  backlogColdLimit      Int      @default(15)
+  backlogProjectLimit   Int      @default(7)
+  showColdInToday       Boolean  @default(false)
+  // Sprint 3-4: Google connectors
+  calendarMode          String   @default("off") // off, freeBusy, timeBlocking
+  defaultCalendarId     String?
+  includeNotesInEvents  Boolean  @default(false)
+  gmailMode             String   @default("off") // off, followUp
+  showEventTitles       Boolean  @default(false)
+  storeEmailSnippet     Boolean  @default(true)
+  // Sprint 4: Automation settings
+  automationsEnabled    Boolean  @default(true)
+  quietHoursStart       String   @default("22:00")
+  quietHoursEnd         String   @default("07:00")
+  maxPromptsPerDay      Int      @default(5)
+  powerUserMode         Boolean  @default(false)
+
+  // Sprint 5: Job Tracker
+  jobHuntingRitualId    String?  @map("jobHuntingStreamId") // ID of the ritual tracking job applications
+  // Automation toggles
+  autoWeeklyReview      Boolean  @default(true)
+  autoDailyReview       Boolean  @default(false)
+  autoInboxThreshold    Boolean  @default(true)
+  autoColdCleanup       Boolean  @default(true)
+  autoRolloverTriage    Boolean  @default(true)
+  autoBankruptcy        Boolean  @default(true)
+  autoCapacityWarning   Boolean  @default(true)
+  autoMeetingHeavy      Boolean  @default(true)
+  autoStalledProject    Boolean  @default(true)
+  autoRitualNudge       Boolean  @default(true) @map("autoStreamNudge")
+  autoScheduleOutcomes  Boolean  @default(true)
+  autoBrokenLink        Boolean  @default(true)
+  
+  // Sprint 8: Active Intelligence (Jarvis)
+  aiProvider            String   @default("gemini") // gemini, local-api, web-llm
+  aiModel               String   @default("gemini-2.0-flash")
+  aiEndpoint            String   @default("https://generativelanguage.googleapis.com/v1beta/openai")
+  aiApiKey              String?  @default("")
+  aiContextWindow       Int      @default(4096)
+  aiTemperature         Float    @default(0.7)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// Pillar - Life domains (formerly Area)
+model Pillar {
+  id        String    @id @default(uuid())
+  name      String
+  colorHex  String    @default("#8B5CF6")
+  icon      String?
+  sortOrder Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  goals     Goal[]
+  projects  Project[]
+  rituals   Ritual[]
+  tasks     Task[]
+
+  @@map("Area")
+}
+
+// Goal - Annual strategic direction (Deprecated/Legacy)
+model Goal {
+  id              String              @id @default(uuid())
+  pillarId        String              @map("areaId")
+  pillar          Pillar              @relation(fields: [pillarId], references: [id])
+  title           String
+  description     String?
+  coverImage      String?             // Path to cover image for visual distinction
+  targetDate      DateTime?
+  status          String              @default("active")
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  quarterlyObjectives QuarterlyObjective[]
+  projects        Project[]
+  rituals         Ritual[]
+  transactions    Transaction[]
+}
+
+// Quarterly Objective
+model QuarterlyObjective {
+  id              String    @id @default(uuid())
+  goalId          String
+  goal            Goal      @relation(fields: [goalId], references: [id])
+  quarter         String
+  title           String
+  description     String?
+  topOutcomes     String?
+  status          String    @default("active")
+  startDate       DateTime?
+  endDate         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  projects        Project[]
+  rituals         Ritual[]
+}
+
+// Project
+model Project {
+  id                  String              @id @default(uuid())
+  pillarId            String              @map("areaId")
+  pillar              Pillar              @relation(fields: [pillarId], references: [id])
+  goalId              String?
+  goal                Goal?               @relation(fields: [goalId], references: [id])
+  quarterlyObjectiveId String?
+  quarterlyObjective  QuarterlyObjective? @relation(fields: [quarterlyObjectiveId], references: [id])
+  title               String
+  description         String?
+  coverImage          String?             // Path to cover image for visual distinction
+  status              String              @default("active")
+  startDate           DateTime?           // Sprint 7: Start date for Gantt/Timeline
+  deadline            DateTime?
+  lastActivityAt      DateTime            @default(now())
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  completedAt         DateTime?
+  
+  tasks               Task[]
+  milestones          Milestone[]
+  dailyOutcomes       DailyOutcome[]
+  transactions        Transaction[]
+}
+
+// Milestone
+model Milestone {
+  id          String    @id @default(uuid())
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  title       String
+  description String?
+  targetDate  DateTime?
+  status      String    @default("not_started")
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+}
+
+// Ritual (formerly Stream)
+model Ritual {
+  id                  String              @id @default(uuid())
+  pillarId            String              @map("areaId")
+  pillar              Pillar              @relation(fields: [pillarId], references: [id])
+  goalId              String?
+  goal                Goal?               @relation(fields: [goalId], references: [id])
+  quarterlyObjectiveId String?
+  quarterlyObjective  QuarterlyObjective? @relation(fields: [quarterlyObjectiveId], references: [id])
+  title               String
+  description         String?
+  coverImage          String?             // Path to cover image for visual distinction
+  cadenceType         String              @default("weekly")
+  targetPerCycle      Int                 @default(3)
+  status              String              @default("active")
+  currentCycleStart   DateTime            @default(now())
+  currentCycleCount   Int                 @default(0)
+  lastActivityAt      DateTime            @default(now())
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  daysOfWeek          String?             // "1,2,3,4,5,6,0" (1=Mon, 0=Sun)
+  entries             RitualEntry[]
+
+  tasks               Task[]
+  cycleRecords        RitualCycleRecord[]
+  dailyOutcomes       DailyOutcome[]
+  transactions        Transaction[]
+
+  @@map("Stream")
+}
+
+// Ritual Entry (formerly Stream Entry)
+model RitualEntry {
+  id          String   @id @default(uuid())
+  ritualId    String   @map("streamId")
+  ritual      Ritual   @relation(fields: [ritualId], references: [id])
+  date        DateTime // The specific date
+  status      String   @default("completed") // completed, missed, skipped
+  createdAt   DateTime @default(now())
+
+  @@unique([ritualId, date])
+  @@map("StreamEntry")
+}
+
+// Ritual Cycle Record (formerly Stream Cycle Record)
+model RitualCycleRecord {
+  id          String   @id @default(uuid())
+  ritualId    String   @map("streamId")
+  ritual      Ritual   @relation(fields: [ritualId], references: [id])
+  cycleStart  DateTime
+  cycleEnd    DateTime
+  target      Int
+  achieved    Int
+  createdAt   DateTime @default(now())
+
+  @@map("StreamCycleRecord")
+}
+
+// Inbox Item
+model InboxItem {
+  id          String    @id @default(uuid())
+  title       String
+  notes       String?
+  source      String    @default("manual")
+  emailSender String?
+  emailSubject String?
+  emailSnippet String?
+  emailReceivedAt DateTime?
+  emailLink   String?
+  snoozedUntil DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  processedAt DateTime?
+  scheduledDate DateTime?
+  energyLevel   String?
+}
+
+// Task - The core work unit
+model Task {
+  id              String    @id @default(uuid())
+  title           String
+  notes           String?
+  
+  // Parent chain (Golden Thread)
+  pillarId        String?   @map("areaId")
+  pillar          Pillar?   @relation(fields: [pillarId], references: [id])
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  ritualId        String?   @map("streamId")
+  ritual          Ritual?   @relation(fields: [ritualId], references: [id])
+  
+  status          String    @default("active")
+  order           Int?      @default(0)
+  
+  // Scheduling
+  dueDate         DateTime?
+  scheduledDate   DateTime?
+  
+  // Estimation
+  estimateMinutes Int?
+  energyLevel     String    @default("medium")
+  
+  // Tracking
+  rolloverCount   Int       @default(0)
+  blockedReason   String?
+  lastTouchedAt   DateTime  @default(now())
+  deferReason     String?
+  deferReviewOn   DateTime?
+  
+  // Email reference
+  emailRef        String?
+  
+  // Sprint 4: Calendar time-blocking
+  calendarProvider  String?   // google
+  calendarEventId   String?
+  calendarBlockStart DateTime?
+  calendarBlockEnd   DateTime?
+  calendarId        String?
+  calendarLinkBroken Boolean  @default(false)
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  committedDate   DateTime?
+  
+  focusSessions   FocusSession[]
+}
+
+// Daily Plan
+model DailyPlan {
+  id              String    @id @default(uuid())
+  date            DateTime  @unique
+  // outcomes        String?   // Legacy: simple text outcomes - REMOVED
+  dailyOutcomes   DailyOutcome[] // New: structured outcomes
+  committedTaskIds String?
+  status          String    @default("active")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  closedAt        DateTime?
+}
+
+// Daily Outcome - Structured outcome linked to goals/projects
+model DailyOutcome {
+  id          String    @id @default(uuid())
+  dailyPlanId String
+  dailyPlan   DailyPlan @relation(fields: [dailyPlanId], references: [id])
+  title       String
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id])
+  ritualId    String?   @map("streamId")
+  ritual      Ritual?   @relation(fields: [ritualId], references: [id])
+  isComplete  Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Archive Record
+model ArchiveRecord {
+  id              String    @id @default(uuid())
+  originalTaskId  String
+  title           String
+  notes           String?
+  
+  pillarId        String?   @map("areaId")
+  pillarName      String?   @map("areaName")
+  projectId       String?
+  projectName     String?
+  ritualId        String?   @map("streamId")
+  ritualName      String?   @map("streamName")
+  goalId          String?
+  goalName        String?
+  
+  estimateMinutes Int?
+  energyLevel     String?
+  rolloverCount   Int       @default(0)
+  
+  completionNote  String?
+  emailRef        String?
+  
+  completedAt     DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+}
+
+// Review Log
+model ReviewLog {
+  id              String    @id @default(uuid())
+  reviewType      String
+  date            DateTime
+  quarter         String?
+  
+  notes           String?
+  weeklyOutcomes  String?
+  quarterSummary  String?
+  
+  statsSnapshot   String?
+  shortlistTaskIds String?
+  
+  createdAt       DateTime  @default(now())
+}
+
+// Bankruptcy Record
+model BankruptcyRecord {
+  id              String    @id @default(uuid())
+  date            DateTime  @default(now())
+  beforeCounts    String
+  afterCounts     String
+  archivedCount   Int       @default(0)
+  somedayCount    Int       @default(0)
+  keptActiveCount Int       @default(0)
+  notes           String?
+  createdAt       DateTime  @default(now())
+}
+
+// Template
+model Template {
+  id              String    @id @default(uuid())
+  name            String
+  type            String
+  category        String
+  description     String?
+  templateData    String
+  isBuiltIn       Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Insight Snapshot
+model InsightSnapshot {
+  id              String    @id @default(uuid())
+  date            DateTime
+  weekNumber      Int?
+  
+  activeTaskCount Int       @default(0)
+  coldTaskCount   Int       @default(0)
+  completedCount  Int       @default(0)
+  rolloverCount   Int       @default(0)
+  blockedCount    Int       @default(0)
+  inboxCount      Int       @default(0)
+  
+  projectsAtRisk  Int       @default(0)
+  ritualsOnTrack  Int       @default(0) @map("streamsOnTrack")
+  ritualsMissed   Int       @default(0) @map("streamsMissed")
+  
+  pillarDistribution String? @map("areaDistribution")
+  
+  createdAt       DateTime  @default(now())
+}
+
+// Calendar Busy Block (Sprint 3-4)
+// ============================================
+// SPRINT 4: Automations (Placeholder for future)
+// ============================================
+
+// ============================================
+// SPRINT 4: Briefings
+// ============================================
+
+model Briefing {
+  id              String    @id @default(uuid())
+  type            String    // monday, quarterly
+  date            DateTime
+  content         String    // Generated narrative text
+  
+  // Stats at generation time
+  weeklyWins      Int       @default(0)
+  topOutcomes     String?   // JSON array
+  projectsAtRisk  Int       @default(0)
+  ritualsBehind   Int       @default(0) @map("streamsBehind")
+  
+  createdAt       DateTime  @default(now())
+}
+
+// ============================================
+// SPRINT 4: Backup/Export
+// ============================================
+
+model DataExport {
+  id              String    @id @default(uuid())
+  exportDate      DateTime  @default(now())
+  filename        String
+  dataVersion     String    @default("4.0")
+  recordCount     Int       @default(0)
+  createdAt       DateTime  @default(now())
+}
+
+// ============================================
+// SPRINT 5: Career Job Tracker
+// ============================================
+
+model JobApplication {
+  id              String    @id @default(uuid())
+  company         String
+  role            String
+  stage           String    @default("wishlist") // wishlist, applied, screening, interview, offer, rejected
+  salary          String?
+  location        String?
+  jobLink         String?
+  notes           String?
+  contactName     String?
+  contactEmail    String?
+  logoUrl         String?   // Sprint 5 Upgrade: Company Logo URL
+  history         String?   // Sprint 5 Upgrade: JSON array of status changes [{ stage, date }]
+  appliedDate     DateTime?
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// ============================================
+// SPRINT 6: Financial System (Finance OS)
+// ============================================
+
+model FinanceAccount {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // checking, savings, credit, investment, cash
+  balance     Float    @default(0)
+  currency    String   @default("USD")
+  isActive    Boolean  @default(true)
+  colorHex    String?
+  icon        String?
+  lastSyncedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  transactions Transaction[]
+}
+
+model BudgetCategory {
+  id          String   @id @default(uuid())
+  name        String
+  type        String   // income, expense, transfer
+  icon        String?
+  colorHex    String?
+  isSystem    Boolean  @default(false) // e.g., "Uncategorized"
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  description     String   // Payee or description
+  amount          Float
+  date            DateTime
+  type            String   // income, expense, transfer
+  status          String   @default("posted") // pending, posted
+  
+  // Relations
+  accountId       String
+  account         FinanceAccount @relation(fields: [accountId], references: [id])
+  categoryId      String?
+  category        BudgetCategory? @relation(fields: [categoryId], references: [id])
+  
+  // Linkages (Golden Thread compatibility)
+  projectId       String?
+  project         Project? @relation(fields: [projectId], references: [id])
+  ritualId        String?   @map("streamId")
+  ritual          Ritual?   @relation(fields: [ritualId], references: [id])
+  goalId          String?
+  goal            Goal?     @relation(fields: [goalId], references: [id])
+  
+  notes           String?
+  isRecurring     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Budget {
+  id          String         @id @default(uuid())
+  year        Int
+  month       Int
+  categoryId  String
+  category    BudgetCategory @relation(fields: [categoryId], references: [id])
+  limitAmount Float
+  notes       String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([year, month, categoryId])
+}
+
+// ============================================
+// SPRINT 7: Knowledge Library (Brain Dump)
+// ============================================
+
+model Resource {
+  id          String   @id @default(uuid())
+  title       String
+  content     String?  // Markdown notes
+  type        String   // 'note', 'pdf', 'link', 'image'
+  filePath    String?  // For uploaded files
+  fileSize    Int?
+  url         String?  // For external links
+
+  // Optional: Links to other domains (Golden Thread)
+  pillarId    String?   @map("areaId")
+  projectId   String?
+  ritualId    String?   @map("streamId")
+
+  isFavorite  Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ============================================
+// PHASE 35: Behavioral Analytics
+// ============================================
+
+model FocusSession {
+  id        String   @id @default(uuid())
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id])
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  duration  Int?     // Seconds
+  notes     String?
+  createdAt DateTime @default(now())
+}
+

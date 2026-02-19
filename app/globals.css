@@ -1,0 +1,401 @@
+/* ============================================
+   SUGULARITY GLOBALS - SPRINT 5
+   Premium Luxury Design System
+   ============================================ */
+
+/* Import Design Tokens */
+@import '../styles/tokens.css';
+@import '../styles/components.css';
+
+/* Tailwind */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   TAILWIND VARIABLE BRIDGE
+   Maps CSS variables to Tailwind HSL format
+   ============================================ */
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 240 10% 4%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 96%;
+    --secondary-foreground: 240 10% 4%;
+    --muted: 240 4% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 263 70% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 263 70% 50%;
+    --radius: 0.625rem;
+
+    /* PREMIUM GLASS TOKENS - LIGHT */
+    --glass-bg: rgba(255, 255, 255, 0.6);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  }
+
+  [data-theme="dark"],
+  [data-theme="system"] {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263 70% 70%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 4% 64%;
+    --accent: 263 70% 70%;
+    --accent-foreground: 240 10% 4%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 263 70% 70%;
+
+    /* PREMIUM GLASS TOKENS - DARK */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  @media (prefers-color-scheme: light) {
+    [data-theme="system"] {
+      --background: 0 0% 98%;
+      --foreground: 240 10% 4%;
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 4%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 240 10% 4%;
+      --primary: 263 70% 50%;
+      --primary-foreground: 0 0% 100%;
+      --secondary: 240 4% 96%;
+      --secondary-foreground: 240 10% 4%;
+      --muted: 240 4% 96%;
+      --muted-foreground: 240 4% 46%;
+      --accent: 263 70% 50%;
+      --accent-foreground: 0 0% 100%;
+      --destructive: 0 84% 60%;
+      --destructive-foreground: 0 0% 100%;
+      --border: 240 6% 90%;
+      --input: 240 6% 90%;
+      --ring: 263 70% 50%;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground min-h-screen font-sans antialiased;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    transition: background-color var(--duration-slow) var(--ease-standard),
+      color var(--duration-slow) var(--ease-standard);
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: var(--accent-muted);
+    color: var(--accent);
+  }
+}
+
+@layer utilities {
+
+  /* Glass Panel - Upgraded */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-lg);
+    transition: box-shadow var(--duration-normal) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard);
+  }
+
+  .glass-panel:hover {
+    border-color: var(--accent-muted);
+    box-shadow: var(--shadow-3);
+  }
+
+  /* Text effects */
+  .text-neon {
+    text-shadow: 0 0 10px var(--accent-muted);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(135deg, var(--accent), var(--info));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Micro 3D hover lift */
+  .hover-lift {
+    transition: transform var(--duration-normal) var(--ease-spring),
+      box-shadow var(--duration-normal) var(--ease-standard);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-3);
+  }
+
+  /* Press effect for mobile */
+  .press-effect:active {
+    transform: scale(0.98);
+  }
+
+  /* Focus visible utility */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--focus-ring-offset) var(--bg-surface),
+      0 0 0 calc(var(--focus-ring-offset) + 2px) var(--focus-ring);
+  }
+
+  /* ============================================
+     WSPACE VIBRANT CARDS
+     ============================================ */
+  .card-vibrant {
+    @apply relative overflow-hidden transition-all duration-300;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-vibrant:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+  }
+
+  .card-vibrant-amber {
+    background: linear-gradient(135deg, #FF9F43 0%, #FF6B6B 100%);
+    color: white;
+  }
+
+  .card-vibrant-amber .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-red {
+    background: linear-gradient(135deg, #FF6B6B 0%, #EE5253 100%);
+    color: white;
+  }
+
+  .card-vibrant-red .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-purple {
+    background: linear-gradient(135deg, #a55eea 0%, #8854d0 100%);
+    color: white;
+  }
+
+  .card-vibrant-purple .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-blue {
+    background: linear-gradient(135deg, #2d98da 0%, #3867d6 100%);
+    color: white;
+  }
+
+  .card-vibrant-blue .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-emerald {
+    background: linear-gradient(135deg, #26de81 0%, #20bf6b 100%);
+    color: white;
+  }
+
+  .card-vibrant-emerald .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-cyan {
+    background: linear-gradient(135deg, #4bcffa 0%, #0fb9b1 100%);
+    color: white;
+  }
+
+  .card-vibrant-cyan .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .card-vibrant-violet {
+    background: linear-gradient(135deg, #7d5fff 0%, #7158e2 100%);
+    color: white;
+  }
+
+  .card-vibrant-violet .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+/* ============================================
+   PREMIUM TYPOGRAPHY OVERRIDES
+   ============================================ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: var(--text-3xl);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-xl);
+}
+
+h4 {
+  font-size: var(--text-lg);
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-muted);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+/* ============================================
+   LINK STYLING
+   ============================================ */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+@media (max-width: 768px) {
+  :root {
+    --space-4: 12px;
+    --space-6: 16px;
+    --space-8: 24px;
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .glass-panel {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ============================================
+   CMDK STYLES
+   ============================================ */
+[cmdk-group-heading] {
+  padding: 0.5rem 0.5rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+[cmdk-item] {
+  content-visibility: auto;
+  cursor: pointer;
+}
+
+[cmdk-item][data-selected="true"] {
+  background: var(--muted);
+}
+
+[cmdk-item][data-disabled="true"] {
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ============================================
+   MOBILE ANIMATIONS
+   ============================================ */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--duration-normal) var(--ease-emphasized) forwards;
+}
+
+/* Safe area for devices with home indicators (iPhone notch etc) */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

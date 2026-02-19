@@ -1,0 +1,55 @@
+{
+  "settings": {
+    "dailyCapacityHours": 6,
+    "workDayStart": "09:00",
+    "workDayEnd": "17:00"
+  },
+  "pillars": [
+    {
+      "name": "Health & Fitness",
+      "colorHex": "#10B981",
+      "icon": "activity",
+      "goals": [
+        {
+          "title": "Run a Marathon",
+          "description": "Complete a 42km run by end of year",
+          "projects": [
+            {
+              "title": "Marathon Training Program",
+              "description": "16-week training block",
+              "milestones": [
+                { "title": "Run 10k continuously" },
+                { "title": "Run 21k (Half Marathon)" }
+              ]
+            }
+          ],
+          "rituals": [
+            {
+              "title": "Morning Run",
+              "cadenceType: "daily",
+              "targetPerCycle": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Career Growth",
+      "colorHex": "#3B82F6",
+      "goals": [
+        {
+          "title": "Get Promoted to Senior Dev",
+          "projects": [
+            {
+              "title": "Lead a major feature",
+              "milestones": [
+                { "title": "Design Doc Approved" },
+                { "title": "MVP Released" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+actions/conflicts.ts(42,16): error TS2339: Property 'calendarBusyBlock' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/conflicts.ts(54,37): error TS7006: Parameter 't' implicitly has an 'any' type.
+actions/decisions.ts(13,19): error TS2339: Property 'decision' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(24,19): error TS2339: Property 'decision' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(35,35): error TS2339: Property 'decision' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(46,18): error TS2339: Property 'decisionOption' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(53,18): error TS2339: Property 'decisionCriterion' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(60,18): error TS2339: Property 'decisionScore' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(76,18): error TS2339: Property 'decision' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(88,18): error TS2339: Property 'decision' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/decisions.ts(106,28): error TS7006: Parameter 'o' implicitly has an 'any' type.
+actions/decisions.ts(109,29): error TS7006: Parameter 'c' implicitly has an 'any' type.
+actions/decisions.ts(112,27): error TS7006: Parameter 's' implicitly has an 'any' type.
+actions/execute.ts(15,19): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskWhereInput'.
+actions/execute.ts(21,15): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskOrderByWithRelationInput'.
+actions/getDashboardData.ts(9,32): error TS2339: Property 'dailyCapacity' does not exist on type '{ id: string; dailyCapacityHours: number; defaultEstimateMin: number; requireEstimate: boolean; workDayStart: string; workDayEnd: string; dashboardCoverImage: string | null; coldTaskDays: number; ... 36 more ...; updatedAt: Date; }'.
+actions/getDashboardData.ts(14,13): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskWhereInput'.
+actions/getDashboardData.ts(33,69): error TS2339: Property 'energyCost' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; areaId: string | null; title: string; notes: string | null; projectId: string | null; streamId: string | null; status: string; ... 17 more ...; committedDate: Date | null; }'.
+actions/getDashboardData.ts(42,27): error TS2551: Property 'project' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; areaId: string | null; title: string; notes: string | null; projectId: string | null; streamId: string | null; status: string; ... 17 more ...; committedDate: Date | null; }'. Did you mean 'projectId'?
+actions/getDashboardData.ts(43,24): error TS2339: Property 'energyCost' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; areaId: string | null; title: string; notes: string | null; projectId: string | null; streamId: string | null; status: string; ... 17 more ...; committedDate: Date | null; }'.
+actions/getDashboardData.ts(49,26): error TS2339: Property 'archetype' does not exist on type '{} & { id: string; createdAt: Date; updatedAt: Date; areaId: string; title: string; status: string; completedAt: Date | null; goalId: string | null; quarterlyObjectiveId: string | null; ... 4 more ...; lastActivityAt: Date; }'.
+actions/getStrategyData.ts(7,33): error TS2339: Property 'value' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/jobs.ts(233,9): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+actions/log.ts(15,18): error TS2339: Property 'dailyLog' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/mission.ts(7,36): error TS2339: Property 'umbrella' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/mission.ts(27,18): error TS2339: Property 'umbrella' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/mission.ts(38,18): error TS2339: Property 'objective' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/plan.ts(19,19): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskWhereInput'.
+actions/plan.ts(24,15): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskOrderByWithRelationInput'.
+actions/plan.ts(25,15): error TS2353: Object literal may only specify known properties, and 'energyCost' does not exist in type 'TaskOrderByWithRelationInput'.
+actions/plan.ts(30,83): error TS2339: Property 'energyCost' does not exist on type '{ id: string; createdAt: Date; updatedAt: Date; areaId: string | null; title: string; notes: string | null; projectId: string | null; streamId: string | null; status: string; ... 17 more ...; committedDate: Date | null; }'.
+actions/projects.ts(10,13): error TS2353: Object literal may only specify known properties, and 'umbrella' does not exist in type 'ProjectInclude<DefaultArgs>'.
+actions/projects.ts(31,13): error TS2353: Object literal may only specify known properties, and 'umbrellaId' does not exist in type '(Without<ProjectCreateInput, ProjectUncheckedCreateInput> & ProjectUncheckedCreateInput) | (Without<...> & ProjectCreateInput)'.
+actions/rail.ts(11,34): error TS2339: Property 'dailySession' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/rail.ts(22,32): error TS2339: Property 'dailySession' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/rail.ts(27,32): error TS2339: Property 'dailySession' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/rail.ts(48,18): error TS2339: Property 'dailySession' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/rail.ts(63,18): error TS2339: Property 'dailySession' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+actions/vortex.ts(11,13): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskWhereInput'.
+actions/vortex.ts(25,13): error TS2353: Object literal may only specify known properties, and 'energyCost' does not exist in type '(Without<TaskCreateInput, TaskUncheckedCreateInput> & TaskUncheckedCreateInput) | (Without<...> & TaskCreateInput)'.
+actions/wrap.ts(17,13): error TS2353: Object literal may only specify known properties, and 'isFrog' does not exist in type 'TaskWhereInput'.
+actions/wrap.ts(37,13): error TS2353: Object literal may only specify known properties, and 'shiftCount' does not exist in type '(Without<TaskUpdateInput, TaskUncheckedUpdateInput> & TaskUncheckedUpdateInput) | (Without<...> & TaskUpdateInput)'.
+app/(core)/automations/page.tsx(14,15): error TS2339: Property 'id' does not exist on type 'never'.
+app/(core)/automations/page.tsx(15,27): error TS2339: Property 'automationName' does not exist on type 'never'.
+app/(core)/automations/page.tsx(16,26): error TS2339: Property 'triggerReason' does not exist on type 'never'.
+app/(core)/automations/page.tsx(17,23): error TS2339: Property 'suggestion' does not exist on type 'never'.
+app/(core)/automations/page.tsx(18,23): error TS2339: Property 'userAction' does not exist on type 'never'.
+app/(core)/automations/page.tsx(19,27): error TS2339: Property 'changesApplied' does not exist on type 'never'.
+app/(core)/automations/page.tsx(20,22): error TS2339: Property 'createdAt' does not exist on type 'never'.
+app/(core)/career/job-tracker/page.tsx(27,31): error TS2740: Type 'Record<string, { id: string; createdAt: Date; updatedAt: Date; notes: string | null; lastActivityAt: Date; role: string; company: string; stage: string; salary: string | null; ... 6 more ...; appliedDate: Date | null; }[]>' is missing the following properties from type 'JobsByStage': wishlist, applied, screening, interview, and 2 more.
+app/(core)/finance/page.tsx(40,17): error TS2322: Type '{ name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; isActive: boolean; type: string; balance: number; currency: string; lastSyncedAt: Date; }[]' is not assignable to type 'Account[]'.
+  Type '{ name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; isActive: boolean; type: string; balance: number; currency: string; lastSyncedAt: Date; }' is not assignable to type 'Account'.
+    Types of property 'colorHex' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+app/(core)/finance/page.tsx(41,17): error TS2322: Type '({ goal: { title: string; } | null; project: { title: string; } | null; stream: { title: string; } | null; category: { name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; sortOrder: number; type: string; isSystem: boolean; } | null; account: { ...; }; } & { ...; ...' is not assignable to type 'Transaction[]'.
+  Type '{ goal: { title: string; } | null; project: { title: string; } | null; stream: { title: string; } | null; category: { name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; sortOrder: number; type: string; isSystem: boolean; } | null; account: { ...; }; } & { ...; }' is not assignable to type 'Transaction'.
+    The types of 'account.colorHex' are incompatible between these types.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+app/(core)/finance/page.tsx(42,17): error TS2322: Type '{ name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; sortOrder: number; type: string; isSystem: boolean; }[]' is not assignable to type '{ id: string; name: string; type: string; colorHex?: string | undefined; }[]'.
+  Type '{ name: string; id: string; createdAt: Date; updatedAt: Date; colorHex: string | null; icon: string | null; sortOrder: number; type: string; isSystem: boolean; }' is not assignable to type '{ id: string; name: string; type: string; colorHex?: string | undefined; }'.
+    Types of property 'colorHex' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+app/(core)/today/page.tsx(72,17): error TS2741: Property 'outcomes' is missing in type '{ dailyOutcomes: ({ project: { id: string; createdAt: Date; updatedAt: Date; areaId: string; title: string; status: string; completedAt: Date | null; goalId: string | null; ... 5 more ...; lastActivityAt: Date; } | null; stream: { ...; } | null; } & { ...; })[]; } & { ...; }' but required in type 'DailyPlan'.
+components/decisions/DecisionWizard.tsx(78,32): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'SetStateAction<string | null>'.
+  Type 'undefined' is not assignable to type 'SetStateAction<string | null>'.
+components/goals/GoalDetailClient.tsx(275,30): error TS2339: Property 'coverImage' does not exist on type 'Goal'.
+components/goals/GoalDetailClient.tsx(624,86): error TS7006: Parameter 'q' implicitly has an 'any' type.
+components/goals/GoalDetailClient.tsx(698,85): error TS7006: Parameter 'q' implicitly has an 'any' type.
+components/today/TodayClient.tsx(292,34): error TS2345: Argument of type 'string' is not assignable to parameter of type 'Date'.
+components/ui/command-menu.tsx(100,110): error TS2304: Cannot find name 'Plus'.
+components/ui/motion.tsx(41,17): error TS2304: Cannot find name 'Variants'.
