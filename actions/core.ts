@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { rag } from '@/lib/ai/rag';
 
 // ============================================
 // PILLAR ACTIONS (formerly Area)
@@ -287,6 +288,7 @@ export async function completeTask(id: string, completionNote?: string) {
 
 export async function deleteTask(id: string) {
     await prisma.task.delete({ where: { id } });
+    rag.removeItem('task', id).catch(() => {});
     revalidatePath('/');
 }
 
@@ -397,6 +399,7 @@ export async function archiveProject(id: string) {
         where: { id },
         data: { status: 'archived' },
     });
+    rag.removeItem('project', id).catch(() => {});
     revalidatePath('/projects');
 }
 
@@ -415,6 +418,7 @@ export async function deleteProject(id: string) {
         // Finally delete the project
         prisma.project.delete({ where: { id } }),
     ]);
+    rag.removeItem('project', id).catch(() => {});
     revalidatePath('/projects');
     return { success: true };
 }
@@ -484,6 +488,7 @@ export async function deleteRitual(id: string) {
         // Finally delete the ritual
         prisma.ritual.delete({ where: { id } }),
     ]);
+    rag.removeItem('ritual', id).catch(() => {});
     revalidatePath('/rituals');
     return { success: true };
 }

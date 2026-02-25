@@ -6,16 +6,13 @@ import { revalidatePath } from 'next/cache';
 // Toggle Ritual Entry (Check / Uncheck)
 export async function toggleRitualEntry(
     ritualId: string,
-    date: Date, // The date being checked (e.g. today or a past date)
+    date: Date,
     status: string = 'completed'
 ) {
-    // Normalize date to midnight UTC or local? 
-    // Best practice: Store date at midnight UTC for "Day" records.
     const normalizedDate = new Date(date);
     normalizedDate.setHours(0, 0, 0, 0);
 
-    // Check if exists
-    const existing = await (prisma as any).ritualEntry.findUnique({
+    const existing = await prisma.ritualEntry.findUnique({
         where: {
             ritualId_date: {
                 ritualId,
@@ -25,13 +22,11 @@ export async function toggleRitualEntry(
     });
 
     if (existing) {
-        // Toggle OFF (Delete)
-        await (prisma as any).ritualEntry.delete({
+        await prisma.ritualEntry.delete({
             where: { id: existing.id }
         });
     } else {
-        // Create
-        await (prisma as any).ritualEntry.create({
+        await prisma.ritualEntry.create({
             data: {
                 ritualId,
                 date: normalizedDate,
@@ -46,67 +41,43 @@ export async function toggleRitualEntry(
 
 // Get Rituals for a specific Day
 export async function getRitualsForDay(date: Date) {
-    console.log('[getRitualsForDay] Starting for date:', date);
-
-    // Create a fresh client to debug global instance issues
-    const { PrismaClient } = await import('@prisma/client');
-    const localPrisma = new PrismaClient();
+    const dayOfWeek = date.getDay();
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
 
     try {
-        const dayOfWeek = date.getDay(); // 0-6
-        const normalizedDate = new Date(date);
-        normalizedDate.setHours(0, 0, 0, 0);
-
-        console.log('[getRitualsForDay] normalizedDate:', normalizedDate);
-
-        // Get all active rituals (Filter safely in memory to avoid Prisma Schema mismatch until restart)
-        // Explicitly using the local client
-        const allRituals = await (localPrisma as any).ritual.findMany({
-            where: {
-                status: 'active',
-            },
+        const allRituals = await prisma.ritual.findMany({
+            where: { status: 'active' },
             include: { pillar: true }
         });
 
-        console.log('[getRitualsForDay] Fetched rituals count:', allRituals.length);
-
-        // Manual Filter & manual Entry fetch (fallback)
-        const ritualsForDay = allRituals.filter((r: any) => {
-            if (!r.daysOfWeek) return true; // Show all if no days set (fallback)
+        const ritualsForDay = allRituals.filter((r) => {
+            if (!r.daysOfWeek) return true;
             return r.daysOfWeek.includes(String(dayOfWeek));
         });
 
-        const ritualIds = ritualsForDay.map((r: any) => r.id);
+        const ritualIds = ritualsForDay.map((r) => r.id);
 
-        // Fetch entries
-        // Using strict raw query if needed, but let's try standard first with local client
-        let entriesMap: Record<string, any> = {};
+        let entriesMap: Record<string, { id: string }> = {};
 
-        try {
-            // Using 'any' cast to avoid build errors if types are stale
-            const entries = await (localPrisma as any).ritualEntry.findMany({
+        if (ritualIds.length > 0) {
+            const entries = await prisma.ritualEntry.findMany({
                 where: {
                     ritualId: { in: ritualIds },
                     date: normalizedDate
                 }
             });
-            entries.forEach((e: any) => entriesMap[e.ritualId] = e);
-        } catch (entryError) {
-            console.error('[getRitualsForDay] Error fetching entries:', entryError);
-            // Ignore entry error and return rituals as not completed
+            entries.forEach((e) => { entriesMap[e.ritualId] = e; });
         }
 
-        return ritualsForDay.map((r: any) => ({
+        return ritualsForDay.map((r) => ({
             ...r,
             isCompleted: !!entriesMap[r.id],
-            entryId: entriesMap[r.id]?.id
+            entryId: entriesMap[r.id]?.id ?? null
         }));
 
     } catch (error) {
-        console.error('[getRitualsForDay] CRITICAL ERROR:', error);
-        // Fallback to empty array to prevent page crash
+        console.error('[getRitualsForDay] Error:', error);
         return [];
-    } finally {
-        await localPrisma.$disconnect();
     }
 }

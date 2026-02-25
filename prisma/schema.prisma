@@ -596,3 +596,19 @@ model FocusSession {
   createdAt DateTime @default(now())
 }
 
+// ============================================
+// RAG: Knowledge Search Index
+// Full-text searchable chunks for Taliye AI
+// ============================================
+
+model RagChunk {
+  id         String   @id @default(cuid())
+  entityType String   // 'task' | 'project' | 'ritual' | 'goal' | 'resource' | 'note'
+  entityId   String
+  content    String   // Searchable text content
+  metadata   String?  // JSON: { title, pillarName, status, ... }
+  updatedAt  DateTime @updatedAt
+
+  @@index([entityType, entityId])
+}
+
