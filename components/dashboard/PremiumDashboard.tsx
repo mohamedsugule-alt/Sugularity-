@@ -32,7 +32,7 @@ import { updateSettings } from '@/actions/settings';
 import { toast } from 'sonner';
 import { AddTransactionModal } from '@/components/finance/AddTransactionModal';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/ui/motion';
-// import { TasksClient } from '@/components/tasks/TasksClient';
+import { useMemo } from 'react';
 
 // Types for props
 type DashboardProps = {
@@ -73,6 +73,15 @@ export function PremiumDashboard({
     const [isUploading, setIsUploading] = useState(false);
     const [showAddTransaction, setShowAddTransaction] = useState(false);
     const [viewMode, setViewMode] = useState<'overview' | 'tasks'>('overview');
+
+    const energyGroups = useMemo(() => {
+        const active = (allTasks ?? []).filter((t: any) => ['active', 'scheduled'].includes(t.status));
+        return {
+            high: active.filter((t: any) => t.energyLevel === 'high'),
+            medium: active.filter((t: any) => t.energyLevel === 'medium'),
+            low: active.filter((t: any) => t.energyLevel === 'low' || !t.energyLevel),
+        };
+    }, [allTasks]);
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -202,10 +211,62 @@ export function PremiumDashboard({
 
             {/* Content Switch */}
             {viewMode === 'tasks' ? (
-                <div className="glass-panel p-6 rounded-3xl min-h-[500px]">
-                    {/* <TasksClient initialTasks={allTasks} /> */}
-                    <div className="text-center py-10 text-muted-foreground">Tasks View Temporarily Unavailable</div>
-                </div>
+                /* ── Energy Board ── */
+                <FadeIn>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {(
+                            [
+                                { key: 'high', label: 'High Energy', color: 'text-orange-400', dot: 'bg-orange-400', border: 'border-orange-500/20 bg-orange-500/5' },
+                                { key: 'medium', label: 'Medium Energy', color: 'text-yellow-400', dot: 'bg-yellow-400', border: 'border-yellow-500/20 bg-yellow-500/5' },
+                                { key: 'low', label: 'Low Energy', color: 'text-blue-400', dot: 'bg-blue-400', border: 'border-blue-500/20 bg-blue-500/5' },
+                            ] as const
+                        ).map(({ key, label, color, dot, border }) => (
+                            <div key={key} className={`rounded-2xl border p-4 ${border}`}>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className={`w-2.5 h-2.5 rounded-full ${dot}`} />
+                                    <h3 className={`font-semibold text-sm ${color}`}>{label}</h3>
+                                    <span className="ml-auto text-xs text-muted-foreground bg-background/60 px-2 py-0.5 rounded-full">
+                                        {energyGroups[key].length}
+                                    </span>
+                                </div>
+                                <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                                    {energyGroups[key].length === 0 ? (
+                                        <p className="text-xs text-muted-foreground/50 text-center py-6">No tasks</p>
+                                    ) : (
+                                        energyGroups[key].map((task: any) => (
+                                            <div
+                                                key={task.id}
+                                                className="p-3 rounded-xl bg-background/60 border border-border/30 hover:border-border/60 transition-colors"
+                                            >
+                                                <p className="text-sm font-medium leading-snug line-clamp-2">{task.title}</p>
+                                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                                    {task.pillar && (
+                                                        <span
+                                                            className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                                                            style={{ backgroundColor: task.pillar.colorHex + '25', color: task.pillar.colorHex }}
+                                                        >
+                                                            {task.pillar.name}
+                                                        </span>
+                                                    )}
+                                                    {task.estimateMinutes && (
+                                                        <span className="text-[10px] text-muted-foreground">
+                                                            {task.estimateMinutes}m
+                                                        </span>
+                                                    )}
+                                                    {task.project && (
+                                                        <span className="text-[10px] text-muted-foreground truncate">
+                                                            {task.project.title}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </FadeIn>
             ) : (
                 /* Main Grid */
                 <>

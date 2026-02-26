@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Clock, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateTask } from '@/actions/core';
@@ -27,6 +28,8 @@ export function EditTaskModal({
     isOpen: boolean;
     onClose: () => void;
 }) {
+    const router = useRouter();
+
     // Helper to format Date to datetime-local string (YYYY-MM-DDTHH:mm)
     const toLocalISO = (date: Date | string | null) => {
         if (!date) return '';
@@ -66,7 +69,7 @@ export function EditTaskModal({
             });
 
             toast.success('Task updated');
-            window.location.reload(); // Simple refresh to show changes
+            router.refresh();
             onClose();
         } catch (error) {
             toast.error('Failed to update task');
