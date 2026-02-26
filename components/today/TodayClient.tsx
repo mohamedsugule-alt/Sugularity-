@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     updateTask,
     completeTask,
@@ -113,6 +114,7 @@ export function TodayClient({
     settings: { dailyCapacityHours: number; defaultEstimateMin: number; showColdInToday: boolean };
     referenceDate: string;
 }) {
+    const router = useRouter();
     const [plan, setPlan] = useState(initialPlan);
     const [tasks, setTasks] = useState(initialTasks);
     // Sync local state with server state for outcomes
@@ -121,9 +123,10 @@ export function TodayClient({
     // Legacy support: if no new outcomes but legacy string exists, maybe prompt? 
     // For now we just use the new system.
 
-    const [committedIds, setCommittedIds] = useState<string[]>(
-        plan.committedTaskIds ? JSON.parse(plan.committedTaskIds) : []
-    );
+    const [committedIds, setCommittedIds] = useState<string[]>(() => {
+        if (!plan.committedTaskIds) return [];
+        try { return JSON.parse(plan.committedTaskIds); } catch { return []; }
+    });
     const [showCloseDay, setShowCloseDay] = useState(false);
     const [showCelebration, setShowCelebration] = useState(false);
     const [dayStats, setDayStats] = useState({ completed: 0, total: 0, outcomesHit: 0, outcomesTotal: 0, focusMinutes: 0 });
@@ -194,9 +197,7 @@ export function TodayClient({
             // RevalidatePath in action will refresh server components, but client state needs update.
             // Simplest: window.location.reload() or router.refresh() if we had router.
 
-            // Actually, best practice with server actions + client state is to return the new list or item.
-            // We'll just hard Reload for now to match other patterns, or better:
-            window.location.reload();
+            router.refresh();
         } catch {
             toast.error('Failed to add outcome');
         } finally {
@@ -477,20 +478,27 @@ export function TodayClient({
 
             {/* View Toggle */}
             <div className="flex justify-end mb-4">
-                <div className="bg-muted p-1 rounded-lg flex items-center">
+                <div className="bg-muted p-1 rounded-lg flex items-center gap-0.5">
                     <button
                         onClick={() => setViewMode('list')}
                         suppressHydrationWarning
                         className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'list' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        List View
+                        List
+                    </button>
+                    <button
+                        onClick={() => setViewMode('board')}
+                        suppressHydrationWarning
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'board' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                        Board
                     </button>
                     <button
                         onClick={() => setViewMode('schedule')}
                         suppressHydrationWarning
                         className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'schedule' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                        Time Blocking
+                        Time Blocks
                     </button>
                 </div>
             </div>
@@ -505,6 +513,15 @@ export function TodayClient({
                         calendarMode="default"
                         currentView="day"
                         pillars={pillars}
+                    />
+                </div>
+            ) : viewMode === 'board' ? (
+                /* Full Board Mode — all committed tasks by energy */
+                <div className="glass-panel p-4 rounded-xl">
+                    <h2 className="text-lg font-semibold mb-4">Today's Tasks by Energy</h2>
+                    <TodayBoard
+                        tasks={committedTasks}
+                        onUpdateTask={(id, updates) => setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))}
                     />
                 </div>
             ) : (
@@ -678,7 +695,7 @@ export function TodayClient({
                                                 const { commitAutoPlan } = await import('@/actions/scheduler');
                                                 await commitAutoPlan(new Date(), result.selectedTaskIds);
                                                 toast.success('Plan applied!', { id: toastId });
-                                                window.location.reload();
+                                                router.refresh();
                                             } else {
                                                 toast.dismiss(toastId);
                                             }
@@ -978,7 +995,7 @@ export function TodayClient({
                                     View Archive
                                 </a>
                                 <button
-                                    onClick={() => window.location.reload()}
+                                    onClick={() => router.refresh()}
                                     className="flex-1 py-3 bg-primary text-primary-foreground rounded-xl font-bold hover:bg-primary/90 transition-colors"
                                 >
                                     Plan Tomorrow →

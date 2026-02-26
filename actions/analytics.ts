@@ -22,22 +22,27 @@ export async function getMonthlyStats(date: Date) {
     const tasks = await prisma.task.findMany({
         where: {
             OR: [
-                {
-                    committedDate: {
-                        gte: startOfMonth,
-                        lte: endOfMonth,
-                    }
-                },
-                {
-                    completedAt: {
-                        gte: startOfMonth,
-                        lte: endOfMonth,
-                    }
-                }
+                { committedDate: { gte: startOfMonth, lte: endOfMonth } },
+                { completedAt: { gte: startOfMonth, lte: endOfMonth } }
             ]
         },
-        // include: { focusSessions: true } // TEMPORARY FIX: Uncomment after server restart
+        include: {
+            pillar: { select: { id: true, name: true, colorHex: true } },
+            focusSessions: true,
+        },
     });
+
+    // 3b. Pillar distribution (completed tasks)
+    const pillarMap: Record<string, { name: string; color: string; count: number }> = {};
+    for (const task of tasks) {
+        if (task.status !== 'done') continue;
+        const key = task.pillar?.id ?? 'none';
+        if (!pillarMap[key]) {
+            pillarMap[key] = { name: task.pillar?.name ?? 'No Pillar', color: task.pillar?.colorHex ?? '#6b7280', count: 0 };
+        }
+        pillarMap[key].count++;
+    }
+    const pillarDistribution = Object.values(pillarMap).sort((a, b) => b.count - a.count);
 
     // 3. Activity Calculation
     let totalCommitted = 0;
@@ -73,8 +78,7 @@ export async function getMonthlyStats(date: Date) {
     }
 
     // Process Focus Sessions
-    // TEMPORARY FIX: Uncomment after server restart
-    /*
+    const focusByDate: Record<string, number> = {}; // ISO date → minutes
     for (const task of tasks) {
         for (const session of task.focusSessions) {
             if (!session.duration) continue;
@@ -82,12 +86,19 @@ export async function getMonthlyStats(date: Date) {
 
             const day = session.startTime.getDay();
             const hour = session.startTime.getHours();
+            const dateKey = session.startTime.toISOString().split('T')[0];
 
             focusByDay[day] = (focusByDay[day] || 0) + session.duration;
             focusByHour[hour] = (focusByHour[hour] || 0) + session.duration;
+            focusByDate[dateKey] = (focusByDate[dateKey] || 0) + Math.round(session.duration / 60);
         }
     }
-    */
+
+    // Build daily focus array aligned with dailyCompletion dates
+    const dailyFocusData = dailyCompletion.map(d => ({
+        date: d.date,
+        minutes: focusByDate[d.date] || 0,
+    }));
 
     const completionRate = totalCommitted > 0 ? Math.round((totalCompleted / totalCommitted) * 100) : 0;
     const avgDailyFocusMinutes = dailyPlans.length > 0 ? Math.round((totalFocusSeconds / 60) / dailyPlans.length) : 0;
@@ -104,7 +115,9 @@ export async function getMonthlyStats(date: Date) {
         completedTasks: totalCompleted,
         totalFocusHours: Math.round(totalFocusSeconds / 3600 * 10) / 10,
         avgDailyFocusMinutes,
-        dailyCompletion, // For Trend Chart
+        dailyCompletion,
+        dailyFocusData,
+        pillarDistribution,
         optimumDay: bestDay ? days[parseInt(bestDay[0])] : 'N/A',
         optimumHour: bestHour ? `${bestHour[0]}:00` : 'N/A',
     };

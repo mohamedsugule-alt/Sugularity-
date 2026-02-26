@@ -1,6 +1,7 @@
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { AutomationsPanel } from '@/components/layout/AutomationsPanel';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 
 export default function CoreLayout({
     children,
@@ -24,6 +25,9 @@ export default function CoreLayout({
 
             {/* Mobile Bottom Nav — visible only on mobile */}
             <MobileNav />
+
+            {/* Onboarding floating widget */}
+            <WelcomeModal />
         </div>
     );
 }

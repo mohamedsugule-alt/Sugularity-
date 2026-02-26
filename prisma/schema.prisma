@@ -244,6 +244,8 @@ model InboxItem {
   processedAt DateTime?
   scheduledDate DateTime?
   energyLevel   String?
+
+  @@index([processedAt])
 }
 
 // Task - The core work unit
@@ -296,6 +298,14 @@ model Task {
   committedDate   DateTime?
   
   focusSessions   FocusSession[]
+
+  @@index([status])
+  @@index([pillarId])
+  @@index([projectId])
+  @@index([committedDate])
+  @@index([completedAt])
+  @@index([lastTouchedAt])
+  @@index([status, pillarId])
 }
 
 // Daily Plan
@@ -521,13 +531,13 @@ model Transaction {
   date            DateTime
   type            String   // income, expense, transfer
   status          String   @default("posted") // pending, posted
-  
+
   // Relations
   accountId       String
   account         FinanceAccount @relation(fields: [accountId], references: [id])
   categoryId      String?
   category        BudgetCategory? @relation(fields: [categoryId], references: [id])
-  
+
   // Linkages (Golden Thread compatibility)
   projectId       String?
   project         Project? @relation(fields: [projectId], references: [id])
@@ -535,11 +545,14 @@ model Transaction {
   ritual          Ritual?   @relation(fields: [ritualId], references: [id])
   goalId          String?
   goal            Goal?     @relation(fields: [goalId], references: [id])
-  
+
   notes           String?
   isRecurring     Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([accountId, date])
+  @@index([date])
 }
 
 model Budget {
