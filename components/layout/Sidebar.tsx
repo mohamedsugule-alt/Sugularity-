@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
+const UserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.UserButton), { ssr: false, loading: () => <div className="w-7 h-7 rounded-full bg-muted" /> });
 import { useTheme } from '@/components/providers/ThemeProvider';
 import {
     LayoutDashboard,
@@ -55,9 +57,18 @@ const navItems = [
     { label: 'Settings', href: '/settings', icon: Settings, color: '' },
 ];
 
-export function Sidebar() {
+export function Sidebar({ powerUserMode = true }: { powerUserMode?: boolean }) {
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
+
+    // Filter out advanced tabs if not a power user
+    const filteredNavItems = navItems.filter(item => {
+        if (!powerUserMode) {
+            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
+            if (advancedLabels.includes(item.label)) return false;
+        }
+        return true;
+    });
 
     const cycleTheme = () => {
         if (theme === 'system') setTheme('light');
@@ -110,7 +121,7 @@ export function Sidebar() {
 
             {/* Main Nav */}
             <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
-                {navItems.map((item, index) => {
+                {filteredNavItems.map((item, index) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     // Add separators for visual grouping
                     const showSeparator = item.label === 'Goals' || item.label === 'Weekly Review';
@@ -136,7 +147,7 @@ export function Sidebar() {
             </nav>
 
             {/* Footer */}
-            <div className="p-3 border-t border-border/50">
+            <div className="p-3 border-t border-border/50 space-y-2">
                 <button
                     onClick={cycleTheme}
                     suppressHydrationWarning
@@ -148,6 +159,10 @@ export function Sidebar() {
                     </span>
                     <span className="text-[10px] opacity-60">Theme</span>
                 </button>
+                <div className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs bg-muted/30 text-muted-foreground">
+                    <span className="flex items-center gap-2 font-medium text-foreground">Local Profile</span>
+                    <UserButton afterSignOutUrl="/sign-in" />
+                </div>
             </div>
         </aside>
     );

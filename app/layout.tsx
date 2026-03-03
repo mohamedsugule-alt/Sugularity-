@@ -29,12 +29,24 @@ export const metadata: Metadata = {
   },
 };
 
+// Conditionally import ClerkProvider only when keys are available
+const hasClerkKeys = !!(
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_...'
+);
+
+let ClerkProviderComponent: any = null;
+if (hasClerkKeys) {
+  const { ClerkProvider } = require('@clerk/nextjs');
+  ClerkProviderComponent = ClerkProvider;
+}
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
+  const content = (
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#8B5CF6" />
@@ -65,4 +77,10 @@ export default function RootLayout({
       </body>
     </html>
   );
+
+  if (ClerkProviderComponent) {
+    return <ClerkProviderComponent>{content}</ClerkProviderComponent>;
+  }
+
+  return content;
 }

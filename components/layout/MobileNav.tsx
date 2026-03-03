@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
+const UserButton = dynamic(() => import('@clerk/nextjs').then(mod => mod.UserButton), { ssr: false, loading: () => <div className="w-7 h-7 rounded-full bg-muted" /> });
 import {
     LayoutDashboard,
     CalendarDays,
@@ -54,10 +56,18 @@ const fullNav = [
     { label: 'Settings', href: '/settings', icon: Settings, color: '' },
 ];
 
-export function MobileNav() {
+export function MobileNav({ powerUserMode = true }: { powerUserMode?: boolean }) {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { theme, setTheme } = useTheme();
+
+    const filteredFullNav = fullNav.filter(item => {
+        if (!powerUserMode) {
+            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
+            if (advancedLabels.includes(item.label)) return false;
+        }
+        return true;
+    });
 
     const cycleTheme = () => {
         if (theme === 'system') setTheme('light');
@@ -137,7 +147,7 @@ export function MobileNav() {
 
                         {/* Navigation Items */}
                         <div className="p-3 space-y-0.5">
-                            {fullNav.map((item) => {
+                            {filteredFullNav.map((item) => {
                                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                                 const showSeparator = item.label === 'Goals' || item.label === 'Analytics';
 
@@ -163,7 +173,7 @@ export function MobileNav() {
                         </div>
 
                         {/* Footer */}
-                        <div className="p-3 border-t border-border/50 mt-2">
+                        <div className="p-3 border-t border-border/50 mt-2 space-y-2">
                             <button
                                 onClick={cycleTheme}
                                 className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs bg-muted/30 text-muted-foreground hover:bg-muted/50 transition-all"
@@ -174,6 +184,10 @@ export function MobileNav() {
                                 </span>
                                 <span className="text-[10px] opacity-60">Theme</span>
                             </button>
+                            <div className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-xs bg-muted/30 text-muted-foreground">
+                                <span className="flex items-center gap-2 font-medium text-foreground">Local Profile</span>
+                                <UserButton afterSignOutUrl="/sign-in" />
+                            </div>
                         </div>
                     </div>
                 </div>
