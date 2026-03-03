@@ -66,7 +66,7 @@ export async function linkJobHuntingRitual(ritualId: string) {
         });
     } else {
         await prisma.userSettings.create({
-            data: { jobHuntingRitualId: ritualId }
+            data: { jobHuntingRitualId: ritualId } as any
         });
     }
     revalidatePath('/career/job-tracker');

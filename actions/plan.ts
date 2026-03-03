@@ -10,7 +10,7 @@ export async function getPlanData() {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     // 1. Get Settings (Capacity)
-    const settings = await prisma.userSettings.findFirst() || await prisma.userSettings.create({ data: {} });
+    const settings = await prisma.userSettings.findFirst() || await prisma.userSettings.create({ data: {} as any });
 
     // 2. Get Today's Tasks
     const tasks = await prisma.task.findMany({

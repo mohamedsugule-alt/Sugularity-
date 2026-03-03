@@ -38,13 +38,69 @@ export interface AutomationPrompt {
 // CHECK AUTOMATIONS
 // ============================================
 
-// ============================================
-// CHECK AUTOMATIONS
-// ============================================
+import { getColdTasks, getTriageRequiredTasks } from './humanNature';
 
 export async function checkAutomations(): Promise<AutomationPrompt[]> {
-    // Automations temporarily disabled during system migration (Sprint 4 cleanup)
-    return [];
+    const settings = await prisma.userSettings.findFirst();
+    if (!settings || !settings.automationsEnabled) return [];
+
+    const prompts: AutomationPrompt[] = [];
+
+    // 1. Cold Task Cleanup
+    if (settings.autoColdCleanup) {
+        const coldTasks = await getColdTasks();
+        if (coldTasks.length > 0) {
+            prompts.push({
+                name: 'coldCleanup',
+                title: 'Ice Age Warning',
+                message: `You have ${coldTasks.length} tasks that haven't been touched in ${settings.coldTaskDays} days.`,
+                triggerReason: `Cold Threshold Exceeded`,
+                actions: [
+                    { label: 'Review Cold Tasks', action: 'resolve', href: '/insights' },
+                    { label: 'Snooze', action: 'snooze' }
+                ],
+                severity: coldTasks.length > settings.backlogColdLimit ? 'warning' : 'info'
+            });
+        }
+    }
+
+    // 2. Rollover Triage
+    if (settings.autoRolloverTriage) {
+        const triageTasks = await getTriageRequiredTasks();
+        if (triageTasks.length > 0) {
+            prompts.push({
+                name: 'rolloverTriage',
+                title: 'Stalled Momentum',
+                message: `${triageTasks.length} tasks have shifted past their scheduled date multiple times and need manual intervention.`,
+                triggerReason: `Shift Count Exceeded`,
+                actions: [
+                    { label: 'Force Triage', action: 'resolve', href: '/tasks/triage' },
+                    { label: 'Snooze', action: 'snooze' }
+                ],
+                severity: 'warning'
+            });
+        }
+    }
+
+    // 3. Bankruptcy (System Overload)
+    if (settings.autoBankruptcy) {
+        const activeCount = await prisma.task.count({ where: { status: 'active' } });
+        if (activeCount > settings.backlogActiveLimit) {
+            prompts.push({
+                name: 'bankruptcy',
+                title: 'System Overload',
+                message: `Your active backlog (${activeCount} tasks) exceeds your cognitive limit of ${settings.backlogActiveLimit}. Initiate backlog bankruptcy?`,
+                triggerReason: `Active tasks > ${settings.backlogActiveLimit}`,
+                actions: [
+                    { label: 'Declare Bankruptcy', action: 'resolve', href: '/bankruptcy' },
+                    { label: 'Dismiss', action: 'decline' }
+                ],
+                severity: 'critical'
+            });
+        }
+    }
+
+    return prompts;
 }
 
 // ============================================
@@ -107,5 +163,5 @@ export async function updateAutomationSettings(data: Partial<{
             data,
         });
     }
-    return prisma.userSettings.create({ data });
+    return prisma.userSettings.create({ data: data as any });
 }

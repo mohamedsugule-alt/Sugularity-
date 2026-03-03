@@ -11,7 +11,7 @@ export async function getSettings() {
 
     if (!settings) {
         settings = await prisma.userSettings.create({
-            data: {},
+            data: {} as any,
         });
     }
 
