@@ -4,6 +4,7 @@ import { getSettings } from '@/actions/settings';
 import { getDayAgenda } from '@/actions/calendar';
 import { getTriageRequiredTasks, getColdTasks } from '@/actions/humanNature';
 import { TodayClient } from '@/components/today/TodayClient';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { CalendarDays, Sun, Moon, CloudSun } from 'lucide-react';
 
 function getGreeting() {
@@ -71,25 +72,27 @@ export default async function TodayPage() {
                 <CalendarDays className="absolute right-4 bottom-4 w-24 h-24 text-blue-500/10" />
             </div>
 
-            <TodayClient
-                initialPlan={plan as any}
-                initialTasks={tasks}
-                agenda={{
-                    ...agenda,
-                    outcomes: []
-                } as any}
-                triageRequiredTasks={triageTasks}
-                coldTasks={coldTasks}
-                projects={projects}
-                rituals={rituals}
-                pillars={pillars}
-                settings={{
-                    dailyCapacityHours: settings.dailyCapacityHours,
-                    defaultEstimateMin: settings.defaultEstimateMin,
-                    showColdInToday: settings.showColdInToday,
-                }}
-                referenceDate={today.toISOString()}
-            />
+            <ErrorBoundary name="Today Dashboard">
+                <TodayClient
+                    initialPlan={plan as any}
+                    initialTasks={tasks}
+                    agenda={{
+                        ...agenda,
+                        outcomes: []
+                    } as any}
+                    triageRequiredTasks={triageTasks}
+                    coldTasks={coldTasks}
+                    projects={projects}
+                    rituals={rituals}
+                    pillars={pillars}
+                    settings={{
+                        dailyCapacityHours: settings.dailyCapacityHours,
+                        defaultEstimateMin: settings.defaultEstimateMin,
+                        showColdInToday: settings.showColdInToday,
+                    }}
+                    referenceDate={today.toISOString()}
+                />
+            </ErrorBoundary>
         </div>
     );
 }

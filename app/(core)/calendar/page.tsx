@@ -2,6 +2,7 @@ import { getDayAgenda, getWeeklyAgenda } from '@/actions/calendar';
 import { getPillars } from '@/actions/core';
 import { getSettings } from '@/actions/settings';
 import { CalendarClient } from '@/components/calendar/CalendarClient';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Calendar } from 'lucide-react';
 
 export default async function CalendarPage({
@@ -106,14 +107,16 @@ export default async function CalendarPage({
                 </p>
             </div>
 
-            <CalendarClient
-                initialDate={date.toISOString()}
-                agenda={serializedDayAgenda}
-                weeklyAgenda={serializedWeeklyAgenda}
-                calendarMode={settings?.calendarMode || 'off'}
-                currentView={view}
-                pillars={pillars}
-            />
+            <ErrorBoundary name="Calendar Service">
+                <CalendarClient
+                    initialDate={date.toISOString()}
+                    agenda={serializedDayAgenda}
+                    weeklyAgenda={serializedWeeklyAgenda}
+                    calendarMode={settings?.calendarMode || 'off'}
+                    currentView={view}
+                    pillars={pillars}
+                />
+            </ErrorBoundary>
         </div>
     );
 }

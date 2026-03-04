@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { createPillar, updatePillar, deletePillar, resetData } from '@/actions/core';
+import { updatePillar, deletePillar, resetData } from '@/actions/core';
 import { updateSettings } from '@/actions/settings';
 import { testAIConnection } from '@/actions/ai';
-import { Plus, X, Save, Snowflake, Clock, FolderKanban, Trash2, Pencil, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, X, Save, Snowflake, Clock, FolderKanban, Trash2, Pencil, AlertTriangle, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useOnboarding } from '@/components/providers/OnboardingProvider';
 import { useRouter } from 'next/navigation';
@@ -659,8 +659,8 @@ export function SettingsClient({
                     <FolderKanban className="w-5 h-5 text-blue-500" />
                     Data Management
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50 col-span-1 md:col-span-2">
                         <h3 className="font-medium mb-2">Import System Template</h3>
                         <p className="text-xs text-muted-foreground mb-4">
                             Upload an Excel file (.xlsx) to bulk create Pillars, Goals, Projects, and Rituals.
@@ -850,7 +850,7 @@ export function SettingsClient({
                     <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
                         <h3 className="font-medium mb-2">Download Template</h3>
                         <p className="text-xs text-muted-foreground mb-4">
-                            Get a sample JSON template to structure your own bulk import file.
+                            Get a sample Excel template to structure your own bulk import file.
                         </p>
                         <button
                             onClick={async () => {
@@ -918,11 +918,28 @@ export function SettingsClient({
                                     toast.error('Failed to generate Excel template');
                                 }
                             }}
-                            className="flex items-center justify-center gap-2 w-full py-2 bg-muted text-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors font-medium text-sm"
+                            className="flex items-center justify-center gap-2 w-full py-2 bg-muted text-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors font-medium text-sm mb-2"
                         >
                             <Save className="w-4 h-4" />
-                            Download Excel Sample
+                            Sample Excel
                         </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 mt-4">
+                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50 flex flex-col items-start w-full">
+                        <h3 className="font-medium mb-2">Export Full System Data</h3>
+                        <p className="text-xs text-muted-foreground mb-4">
+                            Data Sovereignty: Download a complete JSON dump of your entire local database.
+                        </p>
+                        <a
+                            href="/api/export"
+                            download
+                            className="flex items-center justify-center gap-2 w-full py-2 bg-indigo-500/20 text-indigo-500 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-colors font-medium text-sm"
+                        >
+                            <Download className="w-4 h-4" />
+                            Export Data Backup (.json)
+                        </a>
                     </div>
                 </div>
             </div>

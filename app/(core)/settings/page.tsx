@@ -1,6 +1,7 @@
 import { getPillars } from '@/actions/core';
 import { getSettings } from '@/actions/settings';
 import { SettingsClient } from '@/components/settings/SettingsClient';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { Cog } from 'lucide-react';
 
 export default async function SettingsPage() {
@@ -46,7 +47,9 @@ export default async function SettingsPage() {
                 </p>
             </div>
 
-            <SettingsClient initialSettings={serializedSettings} initialPillars={serializedPillars} />
+            <ErrorBoundary name="Settings Panel">
+                <SettingsClient initialSettings={serializedSettings} initialPillars={serializedPillars} />
+            </ErrorBoundary>
         </div>
     );
 }

@@ -221,11 +221,9 @@ export function CalendarClient({
     const [newTaskPillarId, setNewTaskPillarId] = useState('');
     const [isCreating, setIsCreating] = useState(false);
 
-    // Initialize default pillar
+    // Initialize default pillar to empty string (optional)
     useEffect(() => {
-        if (pillars.length > 0 && !newTaskPillarId) {
-            setNewTaskPillarId(pillars[0].id);
-        }
+        // Removed forced default pillar ID to allow optional pillar
     }, [pillars, newTaskPillarId]);
 
     const hours = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 8pm
@@ -349,12 +347,12 @@ export function CalendarClient({
 
     const handleCreateTask = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newTaskTitle.trim() || !newTaskPillarId) return;
+        if (!newTaskTitle.trim()) return;
         setIsCreating(true);
         try {
             await createTask({
                 title: newTaskTitle.trim(),
-                pillarId: newTaskPillarId,
+                pillarId: newTaskPillarId || undefined,
                 scheduledDate: selectedDate,
                 estimateMinutes: 30,
             });
@@ -799,6 +797,7 @@ export function CalendarClient({
                                         onChange={(e) => setNewTaskPillarId(e.target.value)}
                                         className="w-full bg-muted/50 border border-border/50 rounded p-2 text-sm focus:ring-2 focus:ring-primary/50 outline-none"
                                     >
+                                        <option value="">No Pillar</option>
                                         {pillars.map(pillar => (
                                             <option key={pillar.id} value={pillar.id}>{pillar.name}</option>
                                         ))}

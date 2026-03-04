@@ -1,0 +1,561 @@
+﻿diff --git a/actions/automations.ts b/actions/automations.ts
+index 0aa9919..c96a219 100644
+--- a/actions/automations.ts
++++ b/actions/automations.ts
+@@ -38,13 +38,69 @@ export interface AutomationPrompt {
+ // CHECK AUTOMATIONS
+ // ============================================
+ 
+-// ============================================
+-// CHECK AUTOMATIONS
+-// ============================================
++import { getColdTasks, getTriageRequiredTasks } from './humanNature';
+ 
+ export async function checkAutomations(): Promise<AutomationPrompt[]> {
+-    // Automations temporarily disabled during system migration (Sprint 4 cleanup)
+-    return [];
++    const settings = await prisma.userSettings.findFirst();
++    if (!settings || !settings.automationsEnabled) return [];
++
++    const prompts: AutomationPrompt[] = [];
++
++    // 1. Cold Task Cleanup
++    if (settings.autoColdCleanup) {
++        const coldTasks = await getColdTasks();
++        if (coldTasks.length > 0) {
++            prompts.push({
++                name: 'coldCleanup',
++                title: 'Ice Age Warning',
++                message: `You have ${coldTasks.length} tasks that haven't been touched in ${settings.coldTaskDays} days.`,
++                triggerReason: `Cold Threshold Exceeded`,
++                actions: [
++                    { label: 'Review Cold Tasks', action: 'resolve', href: '/insights' },
++                    { label: 'Snooze', action: 'snooze' }
++                ],
++                severity: coldTasks.length > settings.backlogColdLimit ? 'warning' : 'info'
++            });
++        }
++    }
++
++    // 2. Rollover Triage
++    if (settings.autoRolloverTriage) {
++        const triageTasks = await getTriageRequiredTasks();
++        if (triageTasks.length > 0) {
++            prompts.push({
++                name: 'rolloverTriage',
++                title: 'Stalled Momentum',
++                message: `${triageTasks.length} tasks have shifted past their scheduled date multiple times and need manual intervention.`,
++                triggerReason: `Shift Count Exceeded`,
++                actions: [
++                    { label: 'Force Triage', action: 'resolve', href: '/tasks/triage' },
++                    { label: 'Snooze', action: 'snooze' }
++                ],
++                severity: 'warning'
++            });
++        }
++    }
++
++    // 3. Bankruptcy (System Overload)
++    if (settings.autoBankruptcy) {
++        const activeCount = await prisma.task.count({ where: { status: 'active' } });
++        if (activeCount > settings.backlogActiveLimit) {
++            prompts.push({
++                name: 'bankruptcy',
++                title: 'System Overload',
++                message: `Your active backlog (${activeCount} tasks) exceeds your cognitive limit of ${settings.backlogActiveLimit}. Initiate backlog bankruptcy?`,
++                triggerReason: `Active tasks > ${settings.backlogActiveLimit}`,
++                actions: [
++                    { label: 'Declare Bankruptcy', action: 'resolve', href: '/bankruptcy' },
++                    { label: 'Dismiss', action: 'decline' }
++                ],
++                severity: 'critical'
++            });
++        }
++    }
++
++    return prompts;
+ }
+ 
+ // ============================================
+diff --git a/app/(core)/calendar/page.tsx b/app/(core)/calendar/page.tsx
+index 8fbbfe8..1cd7689 100644
+--- a/app/(core)/calendar/page.tsx
++++ b/app/(core)/calendar/page.tsx
+@@ -2,6 +2,7 @@ import { getDayAgenda, getWeeklyAgenda } from '@/actions/calendar';
+ import { getPillars } from '@/actions/core';
+ import { getSettings } from '@/actions/settings';
+ import { CalendarClient } from '@/components/calendar/CalendarClient';
++import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+ import { Calendar } from 'lucide-react';
+ 
+ export default async function CalendarPage({
+@@ -106,14 +107,16 @@ export default async function CalendarPage({
+                 </p>
+             </div>
+ 
+-            <CalendarClient
+-                initialDate={date.toISOString()}
+-                agenda={serializedDayAgenda}
+-                weeklyAgenda={serializedWeeklyAgenda}
+-                calendarMode={settings?.calendarMode || 'off'}
+-                currentView={view}
+-                pillars={pillars}
+-            />
++            <ErrorBoundary name="Calendar Service">
++                <CalendarClient
++                    initialDate={date.toISOString()}
++                    agenda={serializedDayAgenda}
++                    weeklyAgenda={serializedWeeklyAgenda}
++                    calendarMode={settings?.calendarMode || 'off'}
++                    currentView={view}
++                    pillars={pillars}
++                />
++            </ErrorBoundary>
+         </div>
+     );
+ }
+diff --git a/app/(core)/layout.tsx b/app/(core)/layout.tsx
+index 7ee8efa..ff4ae01 100644
+--- a/app/(core)/layout.tsx
++++ b/app/(core)/layout.tsx
+@@ -1,18 +1,25 @@
+ import { Sidebar } from '@/components/layout/Sidebar';
+ import { MobileNav } from '@/components/layout/MobileNav';
++import { CommandPalette } from '@/components/layout/CommandPalette';
++import { getSettings } from '@/actions/settings';
+ 
+-export default function CoreLayout({
++export default async function CoreLayout({
+     children,
+ }: {
+     children: React.ReactNode;
+ }) {
++    const settings = await getSettings();
++    const isPowerUser = settings.powerUserMode;
+     return (
+         <div className="flex h-screen bg-background">
+             {/* Desktop Sidebar ΓÇö hidden on mobile */}
+             <div className="hidden md:block">
+-                <Sidebar />
++                <Sidebar powerUserMode={isPowerUser} />
+             </div>
+ 
++            {/* Global Command Palette */}
++            <CommandPalette powerUserMode={isPowerUser} />
++
+             {/* Main Content ΓÇö responsive padding */}
+             <main className="flex-1 h-full overflow-y-auto relative">
+                 <div className="max-w-full md:max-w-5xl mx-auto p-4 pb-20 md:p-8 md:pb-8">
+@@ -21,7 +28,7 @@ export default function CoreLayout({
+             </main>
+ 
+             {/* Mobile Bottom Nav ΓÇö visible only on mobile */}
+-            <MobileNav />
++            <MobileNav powerUserMode={isPowerUser} />
+         </div>
+     );
+ }
+diff --git a/app/(core)/settings/page.tsx b/app/(core)/settings/page.tsx
+index edc11e6..28be549 100644
+--- a/app/(core)/settings/page.tsx
++++ b/app/(core)/settings/page.tsx
+@@ -1,6 +1,7 @@
+ import { getPillars } from '@/actions/core';
+ import { getSettings } from '@/actions/settings';
+ import { SettingsClient } from '@/components/settings/SettingsClient';
++import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+ import { Cog } from 'lucide-react';
+ 
+ export default async function SettingsPage() {
+@@ -46,7 +47,9 @@ export default async function SettingsPage() {
+                 </p>
+             </div>
+ 
+-            <SettingsClient initialSettings={serializedSettings} initialPillars={serializedPillars} />
++            <ErrorBoundary name="Settings Panel">
++                <SettingsClient initialSettings={serializedSettings} initialPillars={serializedPillars} />
++            </ErrorBoundary>
+         </div>
+     );
+ }
+diff --git a/app/(core)/today/page.tsx b/app/(core)/today/page.tsx
+index 30794ac..16c3548 100644
+--- a/app/(core)/today/page.tsx
++++ b/app/(core)/today/page.tsx
+@@ -4,6 +4,7 @@ import { getSettings } from '@/actions/settings';
+ import { getDayAgenda } from '@/actions/calendar';
+ import { getTriageRequiredTasks, getColdTasks } from '@/actions/humanNature';
+ import { TodayClient } from '@/components/today/TodayClient';
++import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+ import { CalendarDays, Sun, Moon, CloudSun } from 'lucide-react';
+ 
+ function getGreeting() {
+@@ -71,25 +72,27 @@ export default async function TodayPage() {
+                 <CalendarDays className="absolute right-4 bottom-4 w-24 h-24 text-blue-500/10" />
+             </div>
+ 
+-            <TodayClient
+-                initialPlan={plan as any}
+-                initialTasks={tasks}
+-                agenda={{
+-                    ...agenda,
+-                    outcomes: []
+-                } as any}
+-                triageRequiredTasks={triageTasks}
+-                coldTasks={coldTasks}
+-                projects={projects}
+-                rituals={rituals}
+-                pillars={pillars}
+-                settings={{
+-                    dailyCapacityHours: settings.dailyCapacityHours,
+-                    defaultEstimateMin: settings.defaultEstimateMin,
+-                    showColdInToday: settings.showColdInToday,
+-                }}
+-                referenceDate={today.toISOString()}
+-            />
++            <ErrorBoundary name="Today Dashboard">
++                <TodayClient
++                    initialPlan={plan as any}
++                    initialTasks={tasks}
++                    agenda={{
++                        ...agenda,
++                        outcomes: []
++                    } as any}
++                    triageRequiredTasks={triageTasks}
++                    coldTasks={coldTasks}
++                    projects={projects}
++                    rituals={rituals}
++                    pillars={pillars}
++                    settings={{
++                        dailyCapacityHours: settings.dailyCapacityHours,
++                        defaultEstimateMin: settings.defaultEstimateMin,
++                        showColdInToday: settings.showColdInToday,
++                    }}
++                    referenceDate={today.toISOString()}
++                />
++            </ErrorBoundary>
+         </div>
+     );
+ }
+diff --git a/components/calendar/CalendarClient.tsx b/components/calendar/CalendarClient.tsx
+index 9cb2728..38f3bc2 100644
+--- a/components/calendar/CalendarClient.tsx
++++ b/components/calendar/CalendarClient.tsx
+@@ -221,11 +221,9 @@ export function CalendarClient({
+     const [newTaskPillarId, setNewTaskPillarId] = useState('');
+     const [isCreating, setIsCreating] = useState(false);
+ 
+-    // Initialize default pillar
++    // Initialize default pillar to empty string (optional)
+     useEffect(() => {
+-        if (pillars.length > 0 && !newTaskPillarId) {
+-            setNewTaskPillarId(pillars[0].id);
+-        }
++        // Removed forced default pillar ID to allow optional pillar
+     }, [pillars, newTaskPillarId]);
+ 
+     const hours = Array.from({ length: 14 }, (_, i) => i + 6); // 6am to 8pm
+@@ -349,12 +347,12 @@ export function CalendarClient({
+ 
+     const handleCreateTask = async (e: React.FormEvent) => {
+         e.preventDefault();
+-        if (!newTaskTitle.trim() || !newTaskPillarId) return;
++        if (!newTaskTitle.trim()) return;
+         setIsCreating(true);
+         try {
+             await createTask({
+                 title: newTaskTitle.trim(),
+-                pillarId: newTaskPillarId,
++                pillarId: newTaskPillarId || undefined,
+                 scheduledDate: selectedDate,
+                 estimateMinutes: 30,
+             });
+@@ -799,6 +797,7 @@ export function CalendarClient({
+                                         onChange={(e) => setNewTaskPillarId(e.target.value)}
+                                         className="w-full bg-muted/50 border border-border/50 rounded p-2 text-sm focus:ring-2 focus:ring-primary/50 outline-none"
+                                     >
++                                        <option value="">No Pillar</option>
+                                         {pillars.map(pillar => (
+                                             <option key={pillar.id} value={pillar.id}>{pillar.name}</option>
+                                         ))}
+diff --git a/components/inbox/InboxClient.tsx b/components/inbox/InboxClient.tsx
+index be6776b..e726d85 100644
+--- a/components/inbox/InboxClient.tsx
++++ b/components/inbox/InboxClient.tsx
+@@ -153,10 +153,6 @@ export function InboxClient({
+     };
+ 
+     const handleProcess = async (itemId: string, title: string) => {
+-        if (!processForm.pillarId) {
+-            toast.error('Golden Thread: Please select a Pillar');
+-            return;
+-        }
+ 
+         try {
+             await processInboxItem(itemId, {
+@@ -197,8 +193,12 @@ export function InboxClient({
+         }
+     };
+ 
+-    const filteredProjects = projects.filter((p) => p.pillarId === processForm.pillarId);
+-    const filteredRituals = rituals.filter((s) => s.pillarId === processForm.pillarId);
++    const filteredProjects = processForm.pillarId
++        ? projects.filter((p) => p.pillarId === processForm.pillarId)
++        : projects;
++    const filteredRituals = processForm.pillarId
++        ? rituals.filter((s) => s.pillarId === processForm.pillarId)
++        : rituals;
+ 
+     return (
+         <div className="space-y-6">
+@@ -310,7 +310,7 @@ export function InboxClient({
+                                         {/* Pillar (Required) */}
+                                         <div>
+                                             <label className="text-xs font-medium text-muted-foreground block mb-1">
+-                                                Pillar <span className="text-red-500">*</span>
++                                                Pillar
+                                             </label>
+                                             <select
+                                                 value={processForm.pillarId}
+@@ -344,7 +344,6 @@ export function InboxClient({
+                                             <select
+                                                 value={processForm.projectId}
+                                                 onChange={(e) => setProcessForm({ ...processForm, projectId: e.target.value, ritualId: '' })}
+-                                                disabled={!processForm.pillarId}
+                                                 className="w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+                                             >
+                                                 <option value="">No project</option>
+@@ -360,7 +359,6 @@ export function InboxClient({
+                                             <select
+                                                 value={processForm.ritualId}
+                                                 onChange={(e) => setProcessForm({ ...processForm, ritualId: e.target.value, projectId: '' })}
+-                                                disabled={!processForm.pillarId}
+                                                 className="w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm disabled:opacity-50"
+                                             >
+                                                 <option value="">No ritual</option>
+@@ -409,7 +407,6 @@ export function InboxClient({
+ 
+                                     <button
+                                         onClick={() => handleProcess(item.id, item.title)}
+-                                        disabled={!processForm.pillarId}
+                                         className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                     >
+                                         Create Task
+diff --git a/components/layout/MobileNav.tsx b/components/layout/MobileNav.tsx
+index 260a6fa..661a642 100644
+--- a/components/layout/MobileNav.tsx
++++ b/components/layout/MobileNav.tsx
+@@ -54,11 +54,19 @@ const fullNav = [
+     { label: 'Settings', href: '/settings', icon: Settings, color: '' },
+ ];
+ 
+-export function MobileNav() {
++export function MobileNav({ powerUserMode = true }: { powerUserMode?: boolean }) {
+     const pathname = usePathname();
+     const [isMenuOpen, setIsMenuOpen] = useState(false);
+     const { theme, setTheme } = useTheme();
+ 
++    const filteredFullNav = fullNav.filter(item => {
++        if (!powerUserMode) {
++            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
++            if (advancedLabels.includes(item.label)) return false;
++        }
++        return true;
++    });
++
+     const cycleTheme = () => {
+         if (theme === 'system') setTheme('light');
+         else if (theme === 'light') setTheme('dark');
+@@ -137,7 +145,7 @@ export function MobileNav() {
+ 
+                         {/* Navigation Items */}
+                         <div className="p-3 space-y-0.5">
+-                            {fullNav.map((item) => {
++                            {filteredFullNav.map((item) => {
+                                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                                 const showSeparator = item.label === 'Goals' || item.label === 'Analytics';
+ 
+diff --git a/components/layout/Sidebar.tsx b/components/layout/Sidebar.tsx
+index b5cff69..a975990 100644
+--- a/components/layout/Sidebar.tsx
++++ b/components/layout/Sidebar.tsx
+@@ -55,10 +55,19 @@ const navItems = [
+     { label: 'Settings', href: '/settings', icon: Settings, color: '' },
+ ];
+ 
+-export function Sidebar() {
++export function Sidebar({ powerUserMode = true }: { powerUserMode?: boolean }) {
+     const pathname = usePathname();
+     const { theme, setTheme } = useTheme();
+ 
++    // Filter out advanced tabs if not a power user
++    const filteredNavItems = navItems.filter(item => {
++        if (!powerUserMode) {
++            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
++            if (advancedLabels.includes(item.label)) return false;
++        }
++        return true;
++    });
++
+     const cycleTheme = () => {
+         if (theme === 'system') setTheme('light');
+         else if (theme === 'light') setTheme('dark');
+@@ -110,7 +119,7 @@ export function Sidebar() {
+ 
+             {/* Main Nav */}
+             <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+-                {navItems.map((item, index) => {
++                {filteredNavItems.map((item, index) => {
+                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                     // Add separators for visual grouping
+                     const showSeparator = item.label === 'Goals' || item.label === 'Weekly Review';
+diff --git a/components/settings/SettingsClient.tsx b/components/settings/SettingsClient.tsx
+index c2ecf0b..33ad57d 100644
+--- a/components/settings/SettingsClient.tsx
++++ b/components/settings/SettingsClient.tsx
+@@ -1,10 +1,10 @@
+ 'use client';
+ 
+ import { useState } from 'react';
+-import { createPillar, updatePillar, deletePillar, resetData } from '@/actions/core';
++import { updatePillar, deletePillar, resetData } from '@/actions/core';
+ import { updateSettings } from '@/actions/settings';
+ import { testAIConnection } from '@/actions/ai';
+-import { Plus, X, Save, Snowflake, Clock, FolderKanban, Trash2, Pencil, AlertTriangle, Calendar as CalendarIcon } from 'lucide-react';
++import { Plus, X, Save, Snowflake, Clock, FolderKanban, Trash2, Pencil, AlertTriangle, Calendar as CalendarIcon, Download } from 'lucide-react';
+ import { toast } from 'sonner';
+ import { useOnboarding } from '@/components/providers/OnboardingProvider';
+ import { useRouter } from 'next/navigation';
+@@ -659,8 +659,8 @@ export function SettingsClient({
+                     <FolderKanban className="w-5 h-5 text-blue-500" />
+                     Data Management
+                 </h2>
+-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+-                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
++                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
++                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50 col-span-1 md:col-span-2">
+                         <h3 className="font-medium mb-2">Import System Template</h3>
+                         <p className="text-xs text-muted-foreground mb-4">
+                             Upload an Excel file (.xlsx) to bulk create Pillars, Goals, Projects, and Rituals.
+@@ -850,7 +850,7 @@ export function SettingsClient({
+                     <div className="p-4 bg-muted/30 rounded-lg border border-border/50">
+                         <h3 className="font-medium mb-2">Download Template</h3>
+                         <p className="text-xs text-muted-foreground mb-4">
+-                            Get a sample JSON template to structure your own bulk import file.
++                            Get a sample Excel template to structure your own bulk import file.
+                         </p>
+                         <button
+                             onClick={async () => {
+@@ -918,13 +918,30 @@ export function SettingsClient({
+                                     toast.error('Failed to generate Excel template');
+                                 }
+                             }}
+-                            className="flex items-center justify-center gap-2 w-full py-2 bg-muted text-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors font-medium text-sm"
++                            className="flex items-center justify-center gap-2 w-full py-2 bg-muted text-foreground border border-border rounded-lg hover:bg-muted/80 transition-colors font-medium text-sm mb-2"
+                         >
+                             <Save className="w-4 h-4" />
+-                            Download Excel Sample
++                            Sample Excel
+                         </button>
+                     </div>
+                 </div>
++
++                <div className="grid grid-cols-1 gap-4 mt-4">
++                    <div className="p-4 bg-muted/30 rounded-lg border border-border/50 flex flex-col items-start w-full">
++                        <h3 className="font-medium mb-2">Export Full System Data</h3>
++                        <p className="text-xs text-muted-foreground mb-4">
++                            Data Sovereignty: Download a complete JSON dump of your entire local database.
++                        </p>
++                        <a
++                            href="/api/export"
++                            download
++                            className="flex items-center justify-center gap-2 w-full py-2 bg-indigo-500/20 text-indigo-500 border border-indigo-500/30 rounded-lg hover:bg-indigo-500/30 transition-colors font-medium text-sm"
++                        >
++                            <Download className="w-4 h-4" />
++                            Export Data Backup (.json)
++                        </a>
++                    </div>
++                </div>
+             </div>
+ 
+             {/* Danger Zone */}
+diff --git a/components/today/TodayClient.tsx b/components/today/TodayClient.tsx
+index e41c3da..f3fbaeb 100644
+--- a/components/today/TodayClient.tsx
++++ b/components/today/TodayClient.tsx
+@@ -710,12 +710,12 @@ export function TodayClient({
+                         <form
+                             onSubmit={async (e) => {
+                                 e.preventDefault();
+-                                if (!quickAddText.trim() || !quickAddPillar) return;
++                                if (!quickAddText.trim()) return;
+                                 setIsCreating(true);
+                                 try {
+                                     const newTask = await createTask({
+                                         title: quickAddText.trim(),
+-                                        pillarId: quickAddPillar,
++                                        pillarId: quickAddPillar || undefined,
+                                         scheduledDate: quickAddDate ? new Date(quickAddDate) : null,
+                                         energyLevel: quickAddEnergy,
+                                         status: 'active'
+@@ -761,6 +761,7 @@ export function TodayClient({
+                                         onChange={(e) => setQuickAddPillar(e.target.value)}
+                                         className="bg-muted/50 border border-border/50 rounded px-2 py-1 text-xs max-w-[100px]"
+                                     >
++                                        <option value="">No Pillar</option>
+                                         {pillars.map(p => (
+                                             <option key={p.id} value={p.id}>{p.name}</option>
+                                         ))}
+diff --git a/package-lock.json b/package-lock.json
+index 0657193..4478e68 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -21,6 +21,7 @@
+         "framer-motion": "^12.29.0",
+         "lucide-react": "^0.562.0",
+         "next": "16.1.4",
++        "node-cron": "^4.2.1",
+         "react": "19.2.3",
+         "react-dom": "19.2.3",
+         "recharts": "^3.7.0",
+@@ -5656,6 +5657,15 @@
+         "node": "^10 || ^12 || >=14"
+       }
+     },
++    "node_modules/node-cron": {
++      "version": "4.2.1",
++      "resolved": "https://registry.npmjs.org/node-cron/-/node-cron-4.2.1.tgz",
++      "integrity": "sha512-lgimEHPE/QDgFlywTd8yTR61ptugX3Qer29efeyWw2rv259HtGBNn1vZVmp8lB9uo9wC0t/AT4iGqXxia+CJFg==",
++      "license": "ISC",
++      "engines": {
++        "node": ">=6.0.0"
++      }
++    },
+     "node_modules/node-fetch-native": {
+       "version": "1.6.7",
+       "resolved": "https://registry.npmjs.org/node-fetch-native/-/node-fetch-native-1.6.7.tgz",
+diff --git a/package.json b/package.json
+index 086150c..56512d8 100644
+--- a/package.json
++++ b/package.json
+@@ -6,7 +6,8 @@
+     "dev": "next dev",
+     "build": "next build",
+     "start": "next start",
+-    "lint": "eslint"
++    "lint": "eslint",
++    "backup": "node scripts/backupDb.js"
+   },
+   "dependencies": {
+     "@dnd-kit/core": "^6.3.1",
+@@ -22,6 +23,7 @@
+     "framer-motion": "^12.29.0",
+     "lucide-react": "^0.562.0",
+     "next": "16.1.4",
++    "node-cron": "^4.2.1",
+     "react": "19.2.3",
+     "react-dom": "19.2.3",
+     "recharts": "^3.7.0",
+diff --git a/prisma/sugularity.db b/prisma/sugularity.db
+index f6154af..3896d4d 100644
+Binary files a/prisma/sugularity.db and b/prisma/sugularity.db differ

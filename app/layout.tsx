@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'sonner';
@@ -21,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Sugularity | Local LifeOS',
+  title: 'Sugularity | Cloud LifeOS',
   description: 'Hands-on Life Operating System',
   icons: {
     icon: '/logo.png',
@@ -29,58 +30,42 @@ export const metadata: Metadata = {
   },
 };
 
-// Conditionally import ClerkProvider only when keys are available
-const hasClerkKeys = !!(
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== 'pk_test_...'
-);
-
-let ClerkProviderComponent: any = null;
-if (hasClerkKeys) {
-  const { ClerkProvider } = require('@clerk/nextjs');
-  ClerkProviderComponent = ClerkProvider;
-}
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const content = (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="theme-color" content="#8B5CF6" />
-        <meta name="color-scheme" content="light dark" />
-      </head>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased h-screen overflow-hidden`} suppressHydrationWarning>
-        <ThemeProvider>
-          <FocusProvider>
-            <OnboardingProvider>
-              {children}
-              <CommandMenu />
-              <GlobalInbox />
-              <OnboardingBanner />
-              <TaliyeChat />
-            </OnboardingProvider>
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                style: {
-                  background: 'var(--bg-surface)',
-                  border: '1px solid var(--border-default)',
-                  color: 'var(--text-primary)',
-                },
-              }}
-            />
-          </FocusProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+  return (
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <meta name="theme-color" content="#8B5CF6" />
+          <meta name="color-scheme" content="light dark" />
+        </head>
+        <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased h-screen overflow-hidden`} suppressHydrationWarning>
+          <ThemeProvider>
+            <FocusProvider>
+              <OnboardingProvider>
+                {children}
+                <CommandMenu />
+                <GlobalInbox />
+                <OnboardingBanner />
+                <TaliyeChat />
+              </OnboardingProvider>
+              <Toaster
+                position="bottom-right"
+                toastOptions={{
+                  style: {
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    color: 'var(--text-primary)',
+                  },
+                }}
+              />
+            </FocusProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
-
-  if (ClerkProviderComponent) {
-    return <ClerkProviderComponent>{content}</ClerkProviderComponent>;
-  }
-
-  return content;
 }

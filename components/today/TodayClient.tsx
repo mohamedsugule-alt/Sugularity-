@@ -710,12 +710,12 @@ export function TodayClient({
                         <form
                             onSubmit={async (e) => {
                                 e.preventDefault();
-                                if (!quickAddText.trim() || !quickAddPillar) return;
+                                if (!quickAddText.trim()) return;
                                 setIsCreating(true);
                                 try {
                                     const newTask = await createTask({
                                         title: quickAddText.trim(),
-                                        pillarId: quickAddPillar,
+                                        pillarId: quickAddPillar || undefined,
                                         scheduledDate: quickAddDate ? new Date(quickAddDate) : null,
                                         energyLevel: quickAddEnergy,
                                         status: 'active'
@@ -761,6 +761,7 @@ export function TodayClient({
                                         onChange={(e) => setQuickAddPillar(e.target.value)}
                                         className="bg-muted/50 border border-border/50 rounded px-2 py-1 text-xs max-w-[100px]"
                                     >
+                                        <option value="">No Pillar</option>
                                         {pillars.map(p => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}

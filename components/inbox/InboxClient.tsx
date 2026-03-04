@@ -153,10 +153,6 @@ export function InboxClient({
     };
 
     const handleProcess = async (itemId: string, title: string) => {
-        if (!processForm.pillarId) {
-            toast.error('Golden Thread: Please select a Pillar');
-            return;
-        }
 
         try {
             await processInboxItem(itemId, {
@@ -197,8 +193,12 @@ export function InboxClient({
         }
     };
 
-    const filteredProjects = projects.filter((p) => p.pillarId === processForm.pillarId);
-    const filteredRituals = rituals.filter((s) => s.pillarId === processForm.pillarId);
+    const filteredProjects = processForm.pillarId
+        ? projects.filter((p) => p.pillarId === processForm.pillarId)
+        : projects;
+    const filteredRituals = processForm.pillarId
+        ? rituals.filter((s) => s.pillarId === processForm.pillarId)
+        : rituals;
 
     return (
         <div className="space-y-6">
@@ -310,7 +310,7 @@ export function InboxClient({
                                         {/* Pillar (Required) */}
                                         <div>
                                             <label className="text-xs font-medium text-muted-foreground block mb-1">
-                                                Pillar <span className="text-red-500">*</span>
+                                                Pillar
                                             </label>
                                             <select
                                                 value={processForm.pillarId}
@@ -344,7 +344,6 @@ export function InboxClient({
                                             <select
                                                 value={processForm.projectId}
                                                 onChange={(e) => setProcessForm({ ...processForm, projectId: e.target.value, ritualId: '' })}
-                                                disabled={!processForm.pillarId}
                                                 className="w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm disabled:opacity-50"
                                             >
                                                 <option value="">No project</option>
@@ -360,7 +359,6 @@ export function InboxClient({
                                             <select
                                                 value={processForm.ritualId}
                                                 onChange={(e) => setProcessForm({ ...processForm, ritualId: e.target.value, projectId: '' })}
-                                                disabled={!processForm.pillarId}
                                                 className="w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm disabled:opacity-50"
                                             >
                                                 <option value="">No ritual</option>
@@ -409,7 +407,6 @@ export function InboxClient({
 
                                     <button
                                         onClick={() => handleProcess(item.id, item.title)}
-                                        disabled={!processForm.pillarId}
                                         className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
                                     >
                                         Create Task

@@ -1,17 +1,26 @@
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { CommandPalette } from '@/components/layout/CommandPalette';
+import { getSettings } from '@/actions/settings';
 
-export default function CoreLayout({
+export const dynamic = 'force-dynamic';
+
+export default async function CoreLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const settings = await getSettings();
+    const isPowerUser = settings.powerUserMode;
     return (
         <div className="flex h-screen bg-background">
             {/* Desktop Sidebar — hidden on mobile */}
             <div className="hidden md:block">
-                <Sidebar />
+                <Sidebar powerUserMode={isPowerUser} />
             </div>
+
+            {/* Global Command Palette */}
+            <CommandPalette powerUserMode={isPowerUser} />
 
             {/* Main Content — responsive padding */}
             <main className="flex-1 h-full overflow-y-auto relative">
@@ -21,7 +30,7 @@ export default function CoreLayout({
             </main>
 
             {/* Mobile Bottom Nav — visible only on mobile */}
-            <MobileNav />
+            <MobileNav powerUserMode={isPowerUser} />
         </div>
     );
 }
