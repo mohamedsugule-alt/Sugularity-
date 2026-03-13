@@ -396,6 +396,67 @@ export default function LandingPage() {
             </section>
 
             {/* ==========================================
+                BUILT FOR PROFESSIONALS
+               ========================================== */}
+            <section className="py-20 lg:py-28 relative overflow-hidden">
+                <div className="absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-violet-50/30 to-transparent dark:via-violet-950/10" />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                        {/* Left: Image */}
+                        <div className="relative group">
+                            <div className="relative rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-violet-500/10 ring-1 ring-gray-200/60 dark:ring-gray-800">
+                                <Image
+                                    src="/images/hero-collaboration.png"
+                                    alt="Somali professionals collaborating with holographic technology dashboard in a modern office"
+                                    width={1024}
+                                    height={1024}
+                                    className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-700"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                            </div>
+                            {/* Floating accent */}
+                            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-full blur-2xl" />
+                        </div>
+
+                        {/* Right: Text */}
+                        <div className="max-w-lg">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-900/30 border border-violet-200/80 dark:border-violet-800/50 mb-6">
+                                <span className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider">Built for Professionals</span>
+                            </div>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-gray-900 dark:text-white leading-tight">
+                                Designed for Those Who{' '}
+                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-purple-500">Move Fast</span>
+                            </h2>
+                            <p className="mt-6 text-lg text-gray-500 dark:text-gray-400 leading-relaxed">
+                                Whether you&apos;re managing a business, tracking personal finances, or
+                                building daily habits — Sugularity gives you a command center for
+                                your life that just works.
+                            </p>
+                            <div className="mt-8 space-y-4">
+                                {[
+                                    'Track tasks, projects, and deadlines in one place',
+                                    'Monitor your finances with smart categorization',
+                                    'Build streaks and maintain daily rituals',
+                                    'Set goals aligned with your life pillars',
+                                ].map((item) => (
+                                    <div key={item} className="flex items-start gap-3">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                                        <span className="text-gray-700 dark:text-gray-300">{item}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-10">
+                                <Link href="/sign-up" className="group inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 px-7 py-3.5 rounded-full shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:-translate-y-0.5">
+                                    Start Organizing
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* ==========================================
                 FEATURES SECTION
                ========================================== */}
             <section id="features" className="py-20 lg:py-28 relative">
