@@ -61,14 +61,8 @@ export function Sidebar({ powerUserMode = true }: { powerUserMode?: boolean }) {
     const pathname = usePathname();
     const { theme, setTheme } = useTheme();
 
-    // Filter out advanced tabs if not a power user
-    const filteredNavItems = navItems.filter(item => {
-        if (!powerUserMode) {
-            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
-            if (advancedLabels.includes(item.label)) return false;
-        }
-        return true;
-    });
+    // All nav items are always visible
+    const filteredNavItems = navItems;
 
     const cycleTheme = () => {
         if (theme === 'system') setTheme('light');

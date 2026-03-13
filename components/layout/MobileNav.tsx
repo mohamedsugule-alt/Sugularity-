@@ -61,13 +61,8 @@ export function MobileNav({ powerUserMode = true }: { powerUserMode?: boolean })
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { theme, setTheme } = useTheme();
 
-    const filteredFullNav = fullNav.filter(item => {
-        if (!powerUserMode) {
-            const advancedLabels = ['Job Tracker', 'Finance', 'Insights', 'Archive'];
-            if (advancedLabels.includes(item.label)) return false;
-        }
-        return true;
-    });
+    // All nav items are always visible
+    const filteredFullNav = fullNav;
 
     const cycleTheme = () => {
         if (theme === 'system') setTheme('light');

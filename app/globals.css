@@ -399,3 +399,40 @@ a:hover {
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ============================================
+   LANDING PAGE ANIMATIONS
+   ============================================ */
+@keyframes landing-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes landing-float-delayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-16px); }
+}
+
+@keyframes landing-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-float {
+  animation: landing-float 6s ease-in-out infinite;
+}
+
+.landing-float-delayed {
+  animation: landing-float-delayed 7s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.landing-fade-up {
+  animation: landing-fade-up 0.8s ease-out both;
+}
