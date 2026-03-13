@@ -284,10 +284,10 @@ export function LandingPage() {
                         <motion.div variants={fadeUp} className="relative">
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/10 ring-1 ring-black/5">
                                 <Image
-                                    src="/images/hero-professionals.png"
-                                    alt="Professional team collaborating with technology, showing the power of organized workflows"
-                                    width={800}
-                                    height={600}
+                                    src="/images/hero-collaboration.png"
+                                    alt="Somali professionals collaborating with holographic technology dashboard in a modern office"
+                                    width={1024}
+                                    height={1024}
                                     className="w-full h-auto object-cover"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent" />
