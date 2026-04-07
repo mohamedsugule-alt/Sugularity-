@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updatePillar, deletePillar, resetData } from '@/actions/core';
+import { createPillar, updatePillar, deletePillar, resetData } from '@/actions/core';
 import { updateSettings } from '@/actions/settings';
 import { testAIConnection } from '@/actions/ai';
 import { Plus, X, Save, Snowflake, Clock, FolderKanban, Trash2, Pencil, AlertTriangle, Calendar as CalendarIcon, Download } from 'lucide-react';
@@ -108,8 +108,9 @@ export function SettingsClient({
             setShowAddPillar(false);
             toast.success('Pillar created');
             completeStep(1);
-        } catch {
-            toast.error('Failed to create pillar');
+        } catch (err: any) {
+            console.error("Create Pillar Error:", err);
+            toast.error(err.message || 'Failed to create pillar');
         }
     };
 
