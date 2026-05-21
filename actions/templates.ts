@@ -488,18 +488,33 @@ export async function getTemplate(id: string) {
 }
 
 export async function seedBuiltInTemplates() {
-    for (const template of BUILT_IN_TEMPLATES) {
-        await prisma.template.upsert({
-            where: { id: template.name.toLowerCase().replace(/\s+/g, '-') },
-            update: {},
-            create: {
-                id: template.name.toLowerCase().replace(/\s+/g, '-'),
-                ...template,
-                isBuiltIn: true,
-            },
-        });
+    // Skip if this user already has all built-in templates seeded
+    const existingCount = await prisma.template.count({
+        where: { isBuiltIn: true },
+    });
+    if (existingCount >= BUILT_IN_TEMPLATES.length) {
+        return { success: true, count: 0 };
     }
-    return { success: true, count: BUILT_IN_TEMPLATES.length };
+
+    // Find which templates are missing for this user (by name) and create them.
+    // We use create (not upsert) because the Prisma RLS extension auto-injects
+    // userId on create but not on upsert, and templates are per-user copies.
+    let seeded = 0;
+    for (const template of BUILT_IN_TEMPLATES) {
+        const exists = await prisma.template.findFirst({
+            where: { name: template.name, isBuiltIn: true },
+        });
+        if (!exists) {
+            await prisma.template.create({
+                data: {
+                    ...template,
+                    isBuiltIn: true,
+                },
+            });
+            seeded++;
+        }
+    }
+    return { success: true, count: seeded };
 }
 
 export async function applyTemplate(

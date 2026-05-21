@@ -49,6 +49,13 @@ const prismaClientSingleton = () => {
                         }
                     }
 
+                    // upsert needs userId on the create branch AND a userId filter on the where clause
+                    if (operation === 'upsert') {
+                        args.where = { ...args.where, userId };
+                        args.create = args.create || {};
+                        (args.create as any).userId = userId;
+                    }
+
                     // Enforce RLS for reads & updates
                     if (['findUnique', 'findUniqueOrThrow', 'findFirst', 'findFirstOrThrow', 'findMany', 'update', 'updateMany', 'delete', 'deleteMany', 'count', 'aggregate', 'groupBy'].includes(operation)) {
                         args.where = { ...args.where, userId };

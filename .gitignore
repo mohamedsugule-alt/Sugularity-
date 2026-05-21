@@ -43,3 +43,21 @@ next-env.d.ts
 /app/generated/prisma
 
 .vercel
+
+# local databases (we use Supabase in the cloud)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# debug / scratch files
+*.log
+*.patch
+recent_changes.*
+tsc_errors.*
+
+# editor / OS
+.idea/
+.vscode/
+Thumbs.db
+
