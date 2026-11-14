@@ -7,8 +7,7 @@ and webhook/telemetry config were left out on purpose.
 | Skill folder | Upstream repo | Commit | License | Extra requirements |
 |---|---|---|---|---|
 | ponytail, ponytail-* | DietrichGebert/ponytail | 96608e0 | MIT | none |
-| hallmark | Nutlope/hallmark | 04977e1 | MIT | Node; optional TOGETHER_API_KEY for image generation |
-| last30days | mvanhorn/last30days-skill | f087650 | MIT | Python 3; API keys unlock more sources (README demo assets removed) |
+| hallmark | Nutlope/hallmark | 04977e1 | MIT | Node; optional TOGETHER_API_KEY for image generation (installers + edit hook removed) |
 | humanizer | blader/humanizer | b48c832 | MIT | none |
 | impeccable | pbakaus/impeccable | 1995764 | Apache-2.0 | Node for the detector scripts |
 | rea | morluto/rea (reverse-engineer-anything) | 9e24b36 | MIT | `npx -y rea-agents` at use time |

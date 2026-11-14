@@ -94,7 +94,7 @@ Two edge cases: the archive has written nothing yet (say so and wait; do not sta
 
 ## Edit-time linting
 
-On Claude Code, `node <skill-dir>/scripts/install-hook.mjs` wires sloplint as a PostToolUse hook that reports Floor findings the moment an artifact is written and stays quiet otherwise; Step 7 still runs.
+Edit-time hook: removed from this vendored copy (it would modify .claude/settings.json). Step 7 sloplint still runs.
 
 ## Comp before build (signal 9)
 
